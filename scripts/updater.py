@@ -159,7 +159,7 @@ def get_github_proxy_urls():
         "https://ghproxy.net"
     ]
 
-def run_git_command(git_path, args):
+def run_git_command(git_path, args, cwd=None):
     """执行 Git 命令并实时显示输出"""
     process = subprocess.Popen(
         [git_path] + args,
@@ -167,7 +167,8 @@ def run_git_command(git_path, args):
         stderr=subprocess.STDOUT,
         text=True,
         encoding='utf-8',
-        errors='replace'
+        errors='replace',
+        cwd=cwd
     )
 
     output_lines = []
@@ -184,21 +185,17 @@ def run_git_command(git_path, args):
     print("-" * 60)
     return process.poll(), '\n'.join(output_lines)
     
-def pull_with_proxy(git_path):
+def pull_with_proxy(git_path, src_dir, script_dir):
     """使用代理拉取更新代码（传参Git所在位置）"""
-    # # 获取当前脚本所在目录
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 获取脚本所在目录的上级目录
-    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     # 获取代理地址列表
     proxy_list = get_github_proxy_urls()
     for proxy in proxy_list:
         # 拼接代理地址
         new_url = f"{proxy.rstrip('/')}/{DEFAULT_REPO_URL}"
         print(f"\n开始拉取，使用代理地址：{new_url}")
-        run_git_command(git_path, ["remote", "set-url", "origin", new_url])
+        run_git_command(git_path, ["remote", "set-url", "origin", new_url], cwd=src_dir)
         # 拉取代码
-        code, output = run_git_command(git_path, ["pull"])
+        code, output = run_git_command(git_path, ["pull"], cwd=src_dir)
         if code == 0:
             # 成功提示音
             if os.path.exists(f'{script_dir}/runtime/success.wav'): play_audio_async(f'{script_dir}/runtime/success.wav')
@@ -247,10 +244,6 @@ def main():
     # 初始化路径
     # 获取脚本所在目录的上级目录
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 切换目录
-    grandparent_dir = os.path.dirname(os.path.dirname(script_dir))
-    os.chdir(grandparent_dir)
     git_path = os.path.join(script_dir, "runtime", "git-2.48.1", "cmd", "git.exe")
     src_dir = os.path.join(script_dir, "src")
     # 初始化输出
@@ -262,13 +255,13 @@ def main():
         input("按 Enter 退出...")
         return
 
-    try:
-        os.chdir(src_dir)
-        print(f"当前工作目录：{src_dir}")
-    except Exception as e:
-        print(f"[ERROR] 目录切换失败：{str(e)}")
+    # 检查src目录是否存在
+    if not os.path.exists(src_dir):
+        print(f"[ERROR] 未找到src目录：{src_dir}")
         input("按 Enter 退出...")
         return
+
+    print(f"当前工作目录：{src_dir}")
 
     # 是否使用代理拉取
     use_proxy = input("\n是否设置并使用GitHub代理？（留空默认使用代理直接拉取，若需要进行强制更新操作，请输入N并按下回车）(y/n) ").lower() != 'n'
@@ -277,13 +270,13 @@ def main():
     try:
         # 询问是否使用代理
         if use_proxy:
-            # 使用代理拉取代码
-            pull_with_proxy(git_path)
+            # 使用代理拉取代码 - 确保在src目录下执行
+            pull_with_proxy(git_path, src_dir, script_dir)
         else:
             reset = input("是否重置为默认地址？(若需要进行强制更新操作，请输入N并按下回车) (y/n): ").lower() == 'y'
             if reset:
                 print(f"\n重置为默认地址：{DEFAULT_REPO_URL}")
-                run_git_command(git_path, ["remote", "set-url", "origin", DEFAULT_REPO_URL])
+                run_git_command(git_path, ["remote", "set-url", "origin", DEFAULT_REPO_URL], cwd=src_dir)
             else:
                 print("输入非y, 已取消重置操作")
 
@@ -291,7 +284,7 @@ def main():
             pull_mode = get_pull_mode()
             
             if pull_mode == 'normal':
-                code, output = run_git_command(git_path, ["pull"])
+                code, output = run_git_command(git_path, ["pull"], cwd=src_dir)
                 if code == 0:
                     # 成功提示音
                     if os.path.exists(f'{script_dir}/runtime/success.wav'):
@@ -302,15 +295,15 @@ def main():
                     print("\n❌ 拉取失败，请检查日志")
             else:
                 print("\n警告⚠️： 强制拉取将覆盖所有本地修改！")
-                if input("你确认要强制更新吗？请输入“确认强制更新”确认操作：") == "确认强制更新":
+                if input('你确认要强制更新吗？请输入"确认强制更新"确认操作：') == "确认强制更新":
                     # 尝试备份并执行强制更新
                     backup_success = backup_config(script_dir)
                     if not backup_success:
                         print("\n⚠️ 注意：配置文件未备份，继续执行强制更新！")
                     
                     print("\n正在强制更新小智服务端...")
-                    run_git_command(git_path, ["fetch", "--all"])
-                    run_git_command(git_path, ["reset", "--hard", "origin/main"])
+                    run_git_command(git_path, ["fetch", "--all"], cwd=src_dir)
+                    run_git_command(git_path, ["reset", "--hard", "origin/main"], cwd=src_dir)
                     # 成功提示音
                     if os.path.exists(f'{script_dir}/runtime/success.wav'):
                         play_audio_async(f'{script_dir}/runtime/success.wav')
@@ -322,7 +315,7 @@ def main():
     finally:
         # 显示最终远程地址
         print("\n当前远程地址：")
-        run_git_command(git_path, ["remote", "-v"])
+        run_git_command(git_path, ["remote", "-v"], cwd=src_dir)
 
     print("\n操作完成！")
     time.sleep(2)
