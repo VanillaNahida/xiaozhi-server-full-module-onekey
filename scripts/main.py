@@ -139,8 +139,9 @@ def start_process(cmd, cwd=None, window_title=None, wait=False):
         return False
 
 def check_config():
-    # 定义配置成功文件路径
+    # 定义配置成功文件路径 - 移到函数开头确保所有代码路径都能访问
     config_success_file = os.path.join(base_dir, 'data', '.config_init_success')
+    
     # 检测配置是否已初始化
     if not os.path.exists(config_success_file):
         print("检测到配置文件未初始化，需要进行初始化...")
@@ -158,12 +159,9 @@ def check_config():
             if response.lower() == 'n':
                 print("已取消服务启动操作！")
                 return False
-        
-        # 返回配置是否已初始化
-        return os.path.exists(config_success_file)
-    else:
-        # 配置已初始化
-        return True
+    
+    # 返回配置是否已初始化
+    return os.path.exists(config_success_file)
 
 def check_mysql():
     """检查MySQL是否初始化过"""
@@ -186,6 +184,7 @@ def start_mysql_service():
         # 检测是否需要初始化
         if is_init:
             # 执行初始化MySQL数据库
+            print("正在初始化MySQL数据库，请不要关闭本窗口...")
             start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
             print("MySQL初始化完成，现在启动MySQL服务...")
         else:
@@ -261,7 +260,7 @@ def start_all_services():
         if is_init:
             # 执行初始化MySQL数据库
             start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
-            sys.exit(0)
+            print("MySQL初始化完成，继续启动其他服务...")
         else:
             print("已取消MySQL数据库初始化操作！")
             sys.exit(1)

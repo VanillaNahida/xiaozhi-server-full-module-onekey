@@ -5,6 +5,24 @@ import sys
 import time
 from ruamel.yaml import YAML
 
+def create_config_success_marker(project_root):
+    """
+    创建配置初始化成功标记文件
+    """
+    try:
+        # 确保data目录存在
+        data_dir = os.path.join(project_root, 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        # 创建成功标记文件
+        success_file_path = os.path.join(data_dir, '.config_init_success')
+        with open(success_file_path, 'w', encoding='utf-8') as f:
+            f.write(f"配置初始化成功\n日期: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"✅ 配置初始化成功标记文件已创建: {success_file_path}")
+        return True
+    except Exception as e:
+        print(f"警告：创建配置初始化成功标记文件失败: {str(e)}")
+        return False
+
 
 def check_config_file_exists(config_path):
     """
@@ -314,7 +332,9 @@ def main():
                 print(f"✅ 已创建新的配置文件: {config_path}")
                 # 提示用户输入server.secret
                 secret = get_server_secret()
-                update_server_secret(config_path, secret)
+                if update_server_secret(config_path, secret):
+                    # 成功更新密钥后创建标记文件
+                    create_config_success_marker(project_root)
             else:
                 print(f"错误：配置源文件不存在: {config_source_path}")
                 print("请检查小智服务端安装是否完整")
@@ -336,8 +356,10 @@ def main():
                 if backup_and_replace_config(config_path, config_source_path, config_path):
                     # 获取并更新server.secret
                     secret = get_server_secret()
-                    update_server_secret(config_path, secret)
-                    print("\n🎉 配置文件初始化完成！")
+                    if update_server_secret(config_path, secret):
+                        # 成功更新密钥后创建标记文件
+                        create_config_success_marker(project_root)
+                        print("\n🎉 配置文件初始化完成！")
                 else:
                     print("\n❌ 配置文件升级失败，请手动检查")
             else:
@@ -364,8 +386,10 @@ def main():
             
             if secret_needs_update:
                 secret = get_server_secret()
-                update_server_secret(config_path, secret)
-                print("\n🎉 配置文件更新完成！")
+                if update_server_secret(config_path, secret):
+                    # 成功更新密钥后创建标记文件
+                    create_config_success_marker(project_root)
+                    print("\n🎉 配置文件更新完成！")
             else:
                 print("配置文件已包含完整的manager-api配置")
                 
@@ -379,8 +403,9 @@ def main():
                     if response in ['yes', 'y']:
                         print("\n🔄 正在更新服务器密钥...")
                         secret = get_server_secret()
-                        if secret is not None:
-                            update_server_secret(config_path, secret)
+                        if secret is not None and update_server_secret(config_path, secret):
+                            # 成功更新密钥后创建标记文件
+                            create_config_success_marker(project_root)
                             print("\n🎉 服务器密钥更新完成！")
                         else:
                             print("\n✅ 已取消服务器密钥更新")
@@ -401,18 +426,12 @@ def main():
         print("\n请检查错误信息并尝试手动配置")
         return
     
-    # 创建配置初始化成功标记文件
-    try:
-        # 确保data目录存在
-        data_dir = os.path.join(project_root, 'data')
-        os.makedirs(data_dir, exist_ok=True)
-        # 创建成功标记文件
-        success_file_path = os.path.join(data_dir, '.config_init_success')
-        with open(success_file_path, 'w', encoding='utf-8') as f:
-            f.write(f"配置初始化成功\n日期: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"✅ 配置初始化成功标记文件已创建: {success_file_path}")
-    except Exception as e:
-        print(f"警告：创建配置初始化成功标记文件失败: {str(e)}")
+    # 如果程序执行到这里，说明没有进行配置更新但配置已经完整
+    # 检查是否需要创建标记文件
+    data_dir = os.path.join(project_root, 'data')
+    success_file_path = os.path.join(data_dir, '.config_init_success')
+    if not os.path.exists(success_file_path):
+        create_config_success_marker(project_root)
     
     print("配置文件初始化工具执行完毕")
     print("="*30)

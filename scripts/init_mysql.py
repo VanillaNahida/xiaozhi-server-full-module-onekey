@@ -1166,7 +1166,6 @@ def main():
             logger.warning("终止MySQL进程时出错")
         logger.info("初始化工具执行完毕，5秒后自动退出，如果没有自动退出，请手动关闭本窗口")
         time.sleep(5)
-        sys.exit(1)
 
 if __name__ == "__main__":
     try:
