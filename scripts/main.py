@@ -109,7 +109,7 @@ def set_environment_variables():
 3. MySQL 9.4.0:      {mysql_path}
 4. Redis:            {redis_path}
 5. Node.js v24.11.0: {node_path}
-6. Python环境:       {python_path}"""
+6. Python 3.10.16:   {python_path}"""
 
     print_gradient_text(text, (200, 250, 50), (0, 128, 0))
 
