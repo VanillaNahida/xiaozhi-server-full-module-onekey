@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 # GitHub仓库信息
 GITHUB_REPO_OWNER = "VanillaNahida"
-GITHUB_REPO_NAME = "xiaozhi-server-onekey"
+GITHUB_REPO_NAME = "xiaozhi-server-full-module-onekey"
 # 本地存储文件路径，用于记录用户查看状态
 STATE_FILE = "./runtime/release_check_state.json"
 
@@ -26,7 +26,7 @@ class GitHubReleaseChecker:
         # 创建主窗口
         self.root = tk.Tk()
         # 设置初始通用标题
-        self.root.title(f"小智AI服务端一键包 - 正在获取更新信息...")
+        self.root.title(f"小智AI全模块服务端一键包 - 正在获取更新信息...")
         self.root.geometry("900x700")
         self.root.resizable(True, True)
         # 设置窗口置顶显示
@@ -117,7 +117,7 @@ class GitHubReleaseChecker:
             
             # 更新窗口标题，显示tag名称
             if 'tag_name' in release_data:
-                self.root.title(f"小智AI服务端一键包 - 发现新版本！{release_data['tag_name']}")
+                self.root.title(f"小智AI全模块服务端一键包 - 发现新版本！{release_data['tag_name']}")
                 # 刷新窗口以确保标题更新立即生效
                 self.root.update_idletasks()
             
@@ -131,7 +131,7 @@ class GitHubReleaseChecker:
             # 处理请求异常
             error_message = f"获取信息失败:\n{e}"
             # 更新窗口标题，显示错误信息
-            self.root.title(f"小智AI服务端一键包 - 获取更新信息失败！")
+            self.root.title(f"小智AI全模块服务端一键包 - 获取更新信息失败！")
             # 刷新窗口以确保标题更新立即生效
             self.root.update_idletasks()
 
