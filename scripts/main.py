@@ -1,7 +1,8 @@
 import os
 import sys
-import subprocess
 import time
+import requests
+import subprocess
 
 # 获取当前脚本所在目录的父目录作为基础路径
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -53,7 +54,7 @@ def welcome():
 ===================================================================================
     小智AI全模块一键包启动器 By: 哔哩哔哩: @香草味的纳西妲喵
     个人主页: https://space.bilibili.com/1347891621
-    GitHub:  https://github.com/VanillaNahida
+    GitHub:   https://github.com/VanillaNahida
     我的博客: https://www.xcnahida.cn/
     小智服务端项目开源地址: https://github.com/xinnan-tech/xiaozhi-esp32-server
 ===================================================================================
@@ -225,7 +226,7 @@ def start_backend_service():
     """单独启动后端API服务器"""
     print("启动后端API服务器...")
     backend_cwd = os.path.join(base_dir, 'src', 'main', 'manager-api')
-    backend_cmd = 'mvn spring-boot:run'
+    backend_cmd = 'chcp 65001 & mvn spring-boot:run'
     start_process(backend_cmd, cwd=backend_cwd, window_title="后端API服务器")
     print("后端API服务器已启动！请等待一段时间让服务完全启动。")
 
@@ -294,12 +295,49 @@ def start_all_services():
     # 4. 启动后端API服务器
     print("启动后端API服务器...")
     backend_cwd = os.path.join(base_dir, 'src', 'main', 'manager-api')
-    backend_cmd = 'mvn spring-boot:run'
+    backend_cmd = 'chcp 65001 & mvn spring-boot:run'
     start_process(backend_cmd, cwd=backend_cwd, window_title="后端API服务器")
     
     # 等待后端API服务器启动完成
-    print("等待后端API服务器启动完成...（15秒）")
-    time.sleep(15)
+    backend_url = "http://localhost:8002/xiaozhi/doc.html"
+    max_attempts = 120  # 最多等待120秒
+    attempt = 0
+    
+    print(f"等待后端API服务器启动中，正在尝试连接后端服务...")
+    
+    while attempt < max_attempts:
+        attempt += 1
+        try:
+            # 发送GET请求到后端API
+            response = requests.get(backend_url, timeout=2)
+            # 检查响应状态码是否为200（成功）
+            if response.status_code == 200:
+                print(f"成功连接到后端API服务器！")
+                break
+            else:
+                # 服务器已启动但返回非200状态码
+                print(f"第 {attempt} 秒：后端API服务器已响应，但状态码为 {response.status_code}，继续等待...")
+        except requests.ConnectionError:
+            # 连接失败
+            if attempt % 5 == 0:  # 每5秒打印一次提示，避免输出过多
+                print(f"第 {attempt} 秒：后端API服务器尚未启动或无法连接，继续等待...")
+        except requests.Timeout:
+            # 请求超时
+            print(f"第 {attempt} 秒：连接后端API服务器超时，继续等待...")
+        except requests.RequestException as e:
+            # 捕获其他所有请求相关异常
+            print(f"第 {attempt} 秒：请求发生异常: {str(e)}")
+        except Exception as e:
+            # 捕获所有其他意外异常
+            print(f"第 {attempt} 秒：发生意外错误: {str(e)}")
+        
+        time.sleep(1)  # 每秒尝试一次
+    
+    if attempt >= max_attempts:
+        print(f"警告：在 {max_attempts} 秒内未能成功连接到后端API服务器")
+        print(f"将继续执行后续步骤，但可能会影响功能")
+    else:
+        print(f"后端API服务器检查完成，耗时 {attempt} 秒，准备启动小智AI服务端...")
     
     # 5. 启动Python服务端
     if check_config():
@@ -311,7 +349,7 @@ def start_all_services():
         print("检测到配置文件尚未初始化，正在启动初始化...")
         start_process('python scripts\init_config.py', cwd=base_dir, window_title="小智服务端配置初始化")
     print("所有服务启动完成！")
-    time.sleep(3)
+    time.sleep(5)
 
 def main():
     """主函数"""
@@ -355,6 +393,20 @@ def main():
             time.sleep(3)
 
         os.system('cls')
+        text = """
+===================================================================================
+    小智AI全模块一键包启动器 By: 哔哩哔哩: @香草味的纳西妲喵
+    个人主页: https://space.bilibili.com/1347891621
+    GitHub:   https://github.com/VanillaNahida
+    我的博客: https://www.xcnahida.cn/
+    小智服务端项目开源地址: https://github.com/xinnan-tech/xiaozhi-esp32-server
+===================================================================================
+    使用过程中有任何疑问欢迎来群里讨论，如有报错请截图反馈。
+    群: https://www.bilibili.com/opus/1045130607332425735
+    感谢你的使用！
+===================================================================================
+"""
+        print_gradient_text(text, (160, 240, 160), (40, 200, 40))
 
 if __name__ == "__main__":
     main()
