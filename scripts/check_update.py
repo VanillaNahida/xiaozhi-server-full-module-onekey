@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import subprocess
 from typing import Tuple, List
@@ -164,8 +165,26 @@ def start_onekey():
     base_dir = os.path.join(script_dir)
     wrapped = rf'start "小智AI全模块服务端" "{python_path}" scripts\main.py'
     subprocess.Popen(wrapped, cwd=base_dir, shell=True)
+
+def check_path_for_chinese():
+    """
+    检查路径是否有中文
+    """
+    # 获取当前工作目录
+    current_path = os.getcwd()
+    # 检查路径是否包含中文字符（Unicode范围）
+    has_chinese = bool(re.search(r'[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]', current_path))
+    # 输出结果
+    if has_chinese:
+        print(f"警告，当前路径包含中文等特殊字符: {current_path}\n已自动退出，请将一键包移动到非中文目录再启动！")
+        return False
+    else:
+        return True
         
 if __name__ == '__main__':
+    # 检查路径合法性
+    if not check_path_for_chinese():
+        sys.exit()
     if not os.path.exists("./runtime/.is_first_run"):
         print("检测到首次运行一键包，正在打开说明。")
         if not pw.first_run():

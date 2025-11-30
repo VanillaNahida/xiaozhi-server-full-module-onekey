@@ -1,7 +1,6 @@
 import os
 import sys
 import subprocess
-import platform
 import time
 
 # 获取当前脚本所在目录的父目录作为基础路径
