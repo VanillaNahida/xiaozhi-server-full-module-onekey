@@ -10,6 +10,7 @@
     
     本包已集成了智控台，可对小智进行更全面的管理
     如果你是第一次使用我的一键包，使用前请务必观看我发布的相关视频教程
+    · （推荐）全模块一键包使用教程：https://www.bilibili.com/video/BV1cUSmBfEu9
     · 单模块一键包基本教程：https://www.bilibili.com/video/BV1HLRMYTE8H
     · 音乐版单模块一键包教程：https://www.bilibili.com/video/BV1cseVzVEbN
     如果你是之前使用过一键包，想迁移到这个新版本一键包，请看下方说明：
