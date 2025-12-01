@@ -513,8 +513,10 @@ class PopupWindow:
             # 如果没有滚动到底部，显示警告
             self.show_warning()
             return
-        
-        with open("./runtime/.is_first_run", "w") as f:
+
+        # 创建data目录（如果不存在）并写入确认文件
+        if not os.path.exists("./data"): os.makedirs("./data")
+        with open("./data/.is_first_run", "w") as f:
             f.write("yes") 
         
         # 设置全局结果为True表示确认
@@ -532,7 +534,7 @@ class PopupWindow:
     
     def show_warning(self):
         # 显示警告弹窗
-        messagebox.showwarning("警告", "请先阅读完本提示信息！\n看到这个提示说明你没完全阅读完。（滚动条不在最底下）")
+        messagebox.showwarning("警告", "请先阅读完本提示信息！\n看到这个提示说明你没完全阅读完本提示！（滚动条不在最底下）")
     
     def on_cancel(self):
         global popup_result

@@ -185,7 +185,7 @@ if __name__ == '__main__':
     # 检查路径合法性
     if not check_path_for_chinese():
         sys.exit()
-    if not os.path.exists("./runtime/.is_first_run"):
+    if not os.path.exists("./data/.is_first_run"):
         print("检测到首次运行一键包，正在打开说明。")
         if not pw.first_run():
             print("用户已取消，程序退出。")
