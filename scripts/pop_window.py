@@ -277,7 +277,8 @@ class GitHubReleaseChecker:
         update_script = os.path.join(project_root, "scripts", "update_onekey_pack.py")
         
         # 启动更新脚本
-        cmd = rf'start "小智AI服务端更新脚本" "{python_exe}" "{update_script}"'
+        cmd = rf'start "小智AI服务端更新脚本" "{python_exe}" "{update_script}" --auto_update'
+        print(cmd)
         subprocess.Popen(cmd, cwd=os.path.join(project_root, "scripts"), shell=True)
         
         # 如果勾选了今日内不再提示，保存状态
@@ -678,6 +679,6 @@ def should_show_update():
 # 如果直接运行此文件，则作为示例
 if __name__ == "__main__":
     # 显示更新提示弹窗
-    # show_github_release()
+    show_github_release()
     # 显示首次运行弹窗
-    first_run()
+    # first_run()

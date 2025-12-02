@@ -6,6 +6,7 @@ import time
 import wave
 import shutil
 import pyaudio
+import argparse
 import requests
 import threading
 import subprocess
@@ -212,11 +213,31 @@ def get_pull_mode():
             return 'normal' if choice == '1' else 'force'
         print("输入无效，请重新输入！")
 
-def main():
-    print_logo()
-    # # 初始化路径
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
 
+def auto_update(git_path, script_dir):
+    """自动更新函数"""
+    print("\n开始自动更新一键包...")
+    
+    # 使用代理更新代码
+    pull_with_proxy(git_path)
+    
+    # 显示最终远程地址
+    print("\n重置为默认远程地址")
+    run_git_command(git_path, ["remote", "set-url", "origin", DEFAULT_REPO_URL])
+    print("\n当前远程地址：")
+    run_git_command(git_path, ["remote", "-v"])
+    
+    print("\n✅ 自动更新完成！")
+    time.sleep(2)
+
+
+def main():
+    # 添加参数解析
+    parser = argparse.ArgumentParser(description='小智AI全模块带智控台一键包更新脚本')
+    parser.add_argument('--auto_update', action='store_true', help='自动更新一键包')
+    args = parser.parse_args()
+    
+    print_logo()
     # 初始化路径，获取脚本所在目录的上级目录
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     # 切换目录
@@ -236,6 +257,12 @@ def main():
     except Exception as e:
         print(f"[ERROR] 目录切换失败：{str(e)}")
         input("按 Enter 退出...")
+        return
+
+    # 检查是否启用自动更新模式
+    if args.auto_update:
+        print("\n🚀 开始自动更新...")
+        auto_update(git_path, script_dir)
         return
 
     # 代理设置流程
@@ -295,3 +322,5 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     if os.path.exists(rf'{script_dir}\assets\sound.wav'): play_audio_async(rf'{script_dir}\assets\sound.wav')
     main()
+
+
