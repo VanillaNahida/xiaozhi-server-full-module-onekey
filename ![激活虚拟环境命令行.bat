@@ -15,4 +15,4 @@ if not exist "%VENV_PATH%" (
 )
 
 :: 使用完整路径打开新命令行窗口
-cmd /k "cd /d "%VENV_PATH%" && call "%VENV_PATH%\Scripts\activate.bat" && echo 虚拟环境已成功激活！"
+cmd /k "cd /d "%VENV_PATH%" && call "%VENV_PATH%\Scripts\activate.bat" && echo 虚拟环境已成功激活！&& cd ..\..\"
