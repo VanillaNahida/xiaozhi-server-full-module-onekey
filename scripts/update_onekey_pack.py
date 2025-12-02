@@ -127,28 +127,6 @@ def play_audio_async(file_path):
     thread.start()
     return thread
 
-def play_notification(sound_type):
-    """播放提示音函数
-    Args:
-        sound_type (str): 音频类型 ("success", "failed", "sound")
-    """
-    # 获取脚本所在目录的上级目录
-    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
-    # 根据不同类型播放对应音频
-    if sound_type == "success":
-        audio_file = os.path.join(script_dir, "scripts", "assets", "success.wav")
-    elif sound_type == "failed":
-        audio_file = os.path.join(script_dir, "scripts", "assets", "failed.wav")
-    elif sound_type == "sound":
-        audio_file = os.path.join(script_dir, "scripts", "assets", "sound.wav")
-    else:
-        return  # 未知类型不播放音频
-    
-    # 检查音频文件是否存在，存在则播放
-    if os.path.exists(audio_file):
-        play_audio_async(audio_file)
-
 # 常量
 DEFAULT_REPO_URL = "https://github.com/VanillaNahida/xiaozhi-server-full-module-onekey.git"
 
@@ -216,13 +194,13 @@ def pull_with_proxy(git_path):
         code, output = run_git_command(git_path, ["pull"])
         if code == 0:
             # 成功提示音
-            play_notification("success")
+            if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
 
             print("\n✅ 一键包更新成功！" if "Already up" not in output else "\n🎉 恭喜，你本地的代码已经是最新版本！")
             break
         else:
             print("\n❌ 更新失败，正在切换代理地址重试！")
-            play_notification("failed")
+            if os.path.exists(f'{script_dir}/scripts/assets/failed.wav'): play_audio_async(f'{script_dir}/scripts/assets/failed.wav')
 
 def get_pull_mode():
     """选择更新模式"""
@@ -310,12 +288,12 @@ def main():
                 code, output = run_git_command(git_path, ["pull"])
                 if code == 0:
                     # 成功提示音
-                    play_notification("success")
+                    if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
                     print("\n✅ 一键包更新成功！" if "Already up" not in output else "\n🎉 恭喜，你的一键包已经是最新版本！")
 
                 else:
                     print("\n❌ 更新失败，请检查日志")
-                    play_notification("failed")
+                    if os.path.exists(rf'{script_dir}/scripts/assets/failed.wav'): play_audio_async(rf'{script_dir}/scripts/assets/failed.wav')
             else:
                 print("\n警告⚠️： 强制更新将覆盖所有本地修改！")
                 if input("你确认要强制更新吗？请输入“确认强制更新”确认操作：") == "确认强制更新":
@@ -323,7 +301,7 @@ def main():
                     run_git_command(git_path, ["fetch", "origin"])
                     run_git_command(git_path, ["fetch", "--all"])
                     run_git_command(git_path, ["reset", "--hard", "origin/main"])
-                    play_notification("success")
+                    if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
                     print("\n🎉 强制更新成功！")
                 else:
                     print("\n⛔ 输入无效，已取消强制更新操作")
@@ -373,14 +351,35 @@ def update_modules():
         play_notification("failed")
         return False
     
+    print("-" * 30)
+    
+    # 更新小智服务器依赖
+    print("正在更新小智服务器依赖...")
+    try:
+        result = subprocess.run([
+            sys.executable, "-m", "pip", "install", "-r", xiaozhi_server_requirements, "-i", mirror_url
+        ], cwd=script_dir)
+        
+        if result.returncode == 0:
+            print("✅ 小智服务器依赖更新成功！")
+            play_notification("success")
+        else:
+            print("❌ 小智服务器依赖更新失败:")
+            play_notification("failed")
+            return False
+    except Exception as e:
+        print(f"❌ 执行小智服务器依赖更新时出错: {str(e)}")
+        play_notification("failed")
+        return False
+    
     print("=" * 50)
     print("🎉 全部依赖更新完毕！")
     return True
 
 if __name__ == "__main__":
-    # 获取脚本所在目录
+    # 获取脚本所在目录的上级目录
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    play_notification("sound")
+    if os.path.exists(rf'{script_dir}\assets\sound.wav'): play_audio_async(rf'{script_dir}\assets\sound.wav')
     main()
-    update_modules()
-    time.sleep(3)
+
+
