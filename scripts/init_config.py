@@ -433,14 +433,12 @@ def main():
     if not os.path.exists(success_file_path):
         create_config_success_marker(project_root)
     
-    print("配置文件初始化工具执行完毕")
     print("="*30)
-    print("提示：")
-    print("1. 如有配置问题，请重新运行此工具")
-    print("2. 旧版单模块服务端的配置文件备份已保存为 .config.yaml.old")
-    print("3. 你可以使用小智服务端的启动脚本启动服务了")
+    print("配置文件初始化工具执行完毕！")
     print("="*30)
 
 
 if __name__ == '__main__':
     main()
+    print("初始化完成，5秒后自动退出。")
+    time.sleep(5)

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 GITHUB_REPO_OWNER = "VanillaNahida"
 GITHUB_REPO_NAME = "xiaozhi-server-full-module-onekey"
 # 本地存储文件路径，用于记录用户查看状态
-STATE_FILE = "./runtime/release_check_state.json"
+STATE_FILE = "./data/release_check_state.json"
 
 # GitHubReleaseChecker类 - 用于显示GitHub更新信息
 class GitHubReleaseChecker:
@@ -27,7 +27,20 @@ class GitHubReleaseChecker:
         self.root = tk.Tk()
         # 设置初始通用标题
         self.root.title(f"小智AI全模块服务端一键包 - 正在获取更新信息...")
-        self.root.geometry("900x700")
+        
+        # 获取屏幕尺寸
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # 计算自适应窗口大小
+        window_width = int(screen_width * 0.5)
+        window_height = int(screen_height * 0.4)
+        
+        # 设置窗口大小，确保最小尺寸
+        window_width = max(window_width, 800)  # 最小宽度800
+        window_height = max(window_height, 600)  # 最小高度600
+        
+        self.root.geometry(f"{window_width}x{window_height}")
         self.root.resizable(True, True)
         # 设置窗口置顶显示
         self.root.attributes('-topmost', True)
@@ -53,13 +66,18 @@ class GitHubReleaseChecker:
         self.main_frame = ttk.Frame(self.root, padding="20")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # 创建滚动文本框
+        # 创建滚动文本框（使用grid布局确保底部按钮始终可见）
         self.text_frame = ttk.Frame(self.main_frame)
-        self.text_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
+        # 使用grid布局并设置weight确保文本框占据剩余空间
+        self.text_frame.grid(row=0, column=0, sticky="nsew")
         
+        # 配置主框架的列和行权重
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(0, weight=1)  # 文本框行权重为1，占据大部分空间
+        
+        # 创建文本框，不指定固定宽度和高度，让它自适应
         self.text_widget = scrolledtext.ScrolledText(self.text_frame, wrap=tk.WORD, 
-                                                   font=('Microsoft YaHei', 13),
-                                                   width=80, height=25)
+                                                   font=('Microsoft YaHei', 13))
         self.text_widget.pack(fill=tk.BOTH, expand=True)
         
         # 绑定鼠标事件来检测链接
@@ -68,9 +86,10 @@ class GitHubReleaseChecker:
         
         self.text_widget.config(state=tk.DISABLED)
         
-        # 创建底部按钮和复选框区域
+        # 创建底部按钮和复选框区域（放在grid的第二行，权重为0，保持固定高度）
         self.bottom_frame = ttk.Frame(self.main_frame)
-        self.bottom_frame.pack(fill=tk.X, side=tk.BOTTOM)
+        self.bottom_frame.grid(row=1, column=0, sticky="ew", pady=(10, 0))
+        self.main_frame.grid_rowconfigure(1, weight=0)  # 按钮行权重为0，不随窗口拉伸
         
         # 创建左侧占位
         ttk.Frame(self.bottom_frame, width=20).pack(side=tk.LEFT)
@@ -321,7 +340,9 @@ class GitHubReleaseChecker:
             state = {
                 "last_view_date": datetime.now().isoformat()
             }
-            
+            # 确保目录存在，不存在就创建
+            if not os.path.exists(STATE_FILE):
+                os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
             # 写入状态文件
             with open(STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump(state, f)
@@ -342,8 +363,22 @@ class PopupWindow:
         # 主窗口设置
         self.root = root
         self.root.title("小智AI一键包 By：香草味的纳西妲喵 - 必看说明")
-        self.root.geometry("1280x870")
-        self.root.resizable(False, False)
+        
+        # 获取屏幕尺寸
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # 计算自适应窗口大小
+        window_width = int(screen_width * 0.6)
+        window_height = int(screen_height * 0.4)
+        
+        # 设置窗口大小，确保最小尺寸
+        window_width = max(window_width, 1024)  # 最小宽度1024
+        window_height = max(window_height, 768)  # 最小高度768
+        
+        self.root.geometry(f"{window_width}x{window_height}")
+        # 修改为允许调整窗口大小，以便在不同分辨率下更好地适配
+        self.root.resizable(True, True)
         
         # 创建大字体按钮样式
         self.style = ttk.Style()
@@ -357,23 +392,28 @@ class PopupWindow:
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
         # 倒计时相关变量初始化
-        self.countdown_seconds = 15
+        self.countdown_seconds = 20
         self.countdown_active = True
         
         # 初始化其他组件
         self.create_widgets()
         
     def create_widgets(self):
-        # 创建只读文本框
+        # 使用grid布局确保文本框和按钮区域正确排列
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(0, weight=1)  # 文本框行权重为1，占据大部分空间
+        self.main_frame.grid_rowconfigure(1, weight=0)  # 按钮行权重为0，保持固定高度
+        
+        # 创建只读文本框（放在grid的第一行）
         self.text_frame = ttk.Frame(self.main_frame)
-        self.text_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 0))
+        self.text_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
         
         # 创建垂直滚动条
         self.scrollbar = ttk.Scrollbar(self.text_frame, orient=tk.VERTICAL)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # 创建Text组件并关联滚动条
-        self.text_widget = tk.Text(self.text_frame, wrap=tk.WORD, font=('Microsoft YaHei', 18),
+        # 创建Text组件并关联滚动条，不指定固定大小，让它自适应
+        self.text_widget = tk.Text(self.text_frame, wrap=tk.WORD, font=('Microsoft YaHei', 16),
                                   bg=self.root.cget('bg'), bd=0, highlightthickness=0,
                                   yscrollcommand=self.scrollbar.set)
         self.text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -391,9 +431,9 @@ class PopupWindow:
         self.text_widget.bind('<Button-1>', self.on_text_click)
         self.text_widget.bind('<Motion>', self.on_text_motion)
         
-        # 创建按钮框架 - 确保在文本框下方有足够空间
+        # 创建按钮框架（放在grid的第二行，权重为0，保持固定高度）
         self.button_frame = ttk.Frame(self.main_frame)
-        self.button_frame.pack(fill=tk.X, pady=(20, 20))
+        self.button_frame.grid(row=1, column=0, sticky="ew", pady=(10, 0))
         
         # 创建内部框架来居中按钮
         self.inner_button_frame = ttk.Frame(self.button_frame)
@@ -638,4 +678,6 @@ def should_show_update():
 # 如果直接运行此文件，则作为示例
 if __name__ == "__main__":
     # 显示更新提示弹窗
-    show_github_release()
+    # show_github_release()
+    # 显示首次运行弹窗
+    first_run()
