@@ -373,27 +373,6 @@ def update_modules():
         play_notification("failed")
         return False
     
-    print("-" * 30)
-    
-    # 更新小智服务器依赖
-    print("正在更新小智服务器依赖...")
-    try:
-        result = subprocess.run([
-            sys.executable, "-m", "pip", "install", "-r", xiaozhi_server_requirements, "-i", mirror_url
-        ], cwd=script_dir)
-        
-        if result.returncode == 0:
-            print("✅ 小智服务器依赖更新成功！")
-            play_notification("success")
-        else:
-            print("❌ 小智服务器依赖更新失败:")
-            play_notification("failed")
-            return False
-    except Exception as e:
-        print(f"❌ 执行小智服务器依赖更新时出错: {str(e)}")
-        play_notification("failed")
-        return False
-    
     print("=" * 50)
     print("🎉 全部依赖更新完毕！")
     return True
