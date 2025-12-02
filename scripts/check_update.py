@@ -4,6 +4,7 @@ import sys
 import subprocess
 from typing import Tuple, List
 import pop_window as pw
+import pop_window_pyside as pwp
 
 # 获取脚本所在目录的上级目录
 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,7 +127,7 @@ def check_updates():
             print(f'\n\033[33m[提交详细信息]\033[0m\n提交日期: {formatted_date}\n{log_output}\n')
             print(f'{"="*50}\n建议关闭窗口后，运行更新脚本获取一键包最新版！')
             # 显示弹窗并获取用户选择结果
-            update_result = pw.show_github_release()
+            update_result = pwp.show_github_release()
             # 如果用户选择了立即更新，退出程序
             if update_result:
                 sys.exit(1)
@@ -187,7 +188,7 @@ if __name__ == '__main__':
         sys.exit()
     if not os.path.exists("./data/.is_first_run"):
         print("检测到首次运行一键包，正在打开说明。")
-        if not pw.first_run():
+        if not pwp.first_run():
             print("用户已取消，程序退出。")
             sys.exit()
 
