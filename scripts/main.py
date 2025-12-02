@@ -52,7 +52,7 @@ def welcome():
     print_gradient_text(text, (200, 250, 50), (0, 128, 0))
     text = """
 ===================================================================================
-    小智AI全模块一键包启动器 By: 哔哩哔哩: @香草味的纳西妲喵
+    小智AI全模块一键包启动器 V1.0.0 Patch 1 By: 哔哩哔哩: @香草味的纳西妲喵
     个人主页: https://space.bilibili.com/1347891621
     GitHub:   https://github.com/VanillaNahida
     我的博客: https://www.xcnahida.cn/
@@ -396,7 +396,7 @@ def main():
         os.system('cls')
         text = """
 ===================================================================================
-    小智AI全模块一键包启动器 By: 哔哩哔哩: @香草味的纳西妲喵
+    小智AI全模块一键包启动器 V1.0.0 Patch 1 By: 哔哩哔哩: @香草味的纳西妲喵
     个人主页: https://space.bilibili.com/1347891621
     GitHub:   https://github.com/VanillaNahida
     我的博客: https://www.xcnahida.cn/
