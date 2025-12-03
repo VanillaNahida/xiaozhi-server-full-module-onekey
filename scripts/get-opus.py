@@ -22,7 +22,7 @@ def run_command(command):
         if result.returncode == 0:
             print("命令执行成功")
             if result.stdout:
-                print(f"输出: {result.stdout}")
+                print(f"输出: \n{result.stdout}")
         else:
             print(f"命令执行失败: {result.stderr}")
         return result.returncode == 0
@@ -39,7 +39,7 @@ def uninstall_opuslib():
 # 定义下载opus.dll函数
 def download_opus_dll():
     """从指定链接下载opus.dll"""
-    url = "http://drive.xcnahida.cn/f/d/90CG/opus.dll"
+    url = "https://drive.xcnahida.cn/f/d/90CG/opus.dll"
     # 动态计算目标目录
     target_dir = Path(os.path.join(runtime_dir, 'conda_env'))
     
@@ -47,29 +47,20 @@ def download_opus_dll():
     target_dir.mkdir(parents=True, exist_ok=True)
     target_file = target_dir / "opus.dll"
     
-    # 创建不验证SSL证书的上下文
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
+    # 下载文件
     
-    # 尝试多种方法下载文件
-    print(f"正在从 {url} 下载 opus.dll...")
-    
-    # 方法1: 使用urllib并忽略SSL错误
     try:
-        print("尝试方法1: 使用urllib并忽略SSL错误...")
+        print(f"正在从 {url} 下载 opus.dll...")
         request = urllib.request.Request(url)
         request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-        with urllib.request.urlopen(request, context=context) as response:
+        request.add_header('Referer', 'xcnahida.cn')
+        with urllib.request.urlopen(request) as response:
             with open(target_file, 'wb') as f:
                 f.write(response.read())
         print("opus.dll 下载成功")
         return True
     except Exception as e:
-        print(f"方法1失败: {e}")
-    
-    # 如果上述方法都失败，则返回False
-    print("所有下载方法都失败了")
+        print(f"下载失败！错误信息: {e}")
     return False
 
 # 定义安装依赖函数
@@ -78,7 +69,7 @@ def install_requirements():
     # 动态计算requirements.txt路径
     requirements_path = os.path.join(base_dir, 'src', 'main', 'xiaozhi-server', 'requirements.txt')
     print(f"正在安装 {requirements_path} 中的依赖...")
-    return run_command(f"{sys.executable} -m pip install -r \"{requirements_path}\"")
+    return run_command(f"{sys.executable} -m pip install -vv -r \"{requirements_path}\"")
 
 # 定义主函数
 def main():

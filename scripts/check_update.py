@@ -3,7 +3,8 @@ import re
 import sys
 import subprocess
 from typing import Tuple, List
-import pop_window as pw
+import pop_window_pyside as pwp
+# import pop_window as pw
 
 # 获取脚本所在目录的上级目录
 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,7 +15,7 @@ python_path = os.path.join(script_dir, "runtime", "conda_env", "python.exe")
 
 def fetch_remote() -> bool:
     try:
-        subprocess.run([git_path, 'fetch'], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        subprocess.run([git_path, 'fetch', '--all'], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return True
     except subprocess.CalledProcessError as e:
         print(f'远程仓库更新失败: {e.output.decode()}')
@@ -70,11 +71,6 @@ def format_commit_date(commit_date_str):
 
 def check_updates():
     print("检查更新中……")
-    current_branch = subprocess.check_output(
-        [git_path, 'rev-parse', '--abbrev-ref', 'HEAD'],
-        text=True
-    ).strip()
-    
     # 获取当前远程仓库URL
     original_remote_url = subprocess.check_output(
         [git_path, 'config', '--get', f'remote.origin.url'],
@@ -82,11 +78,19 @@ def check_updates():
     ).strip()
     
     # 设置临时加速URL
+    print("使用加速地址检查更新……")
     fast_remote_url = "https://ghfast.top/https://github.com/VanillaNahida/xiaozhi-server-onekey"
+    subprocess.run([git_path, 'remote', 'set-url', 'origin', fast_remote_url], check=True)
     
     try:
-        # 临时修改远程URL为加速链接
-        subprocess.run([git_path, 'remote', 'set-url', 'origin', fast_remote_url], check=True)
+
+        # 获取最新的远程提交信息
+        subprocess.run([git_path, 'fetch', '--all'], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        current_branch = subprocess.check_output(
+            [git_path, 'rev-parse', '--abbrev-ref', 'HEAD'],
+            text=True
+        ).strip()
         
         if not fetch_remote():
             return
@@ -126,7 +130,7 @@ def check_updates():
             print(f'\n\033[33m[提交详细信息]\033[0m\n提交日期: {formatted_date}\n{log_output}\n')
             print(f'{"="*50}\n建议关闭窗口后，运行更新脚本获取一键包最新版！')
             # 显示弹窗并获取用户选择结果
-            update_result = pw.show_github_release()
+            update_result = pwp.show_github_release()
             # 如果用户选择了立即更新，退出程序
             if update_result:
                 sys.exit(1)
@@ -154,6 +158,7 @@ def check_updates():
     
     finally:
         # 恢复原始远程URL
+        print("恢复原始远程地址……")
         subprocess.run([git_path, 'remote', 'set-url', 'origin', original_remote_url], check=True)
     
     print("\n检查完毕！正在启动小智AI服务端……")
@@ -187,7 +192,7 @@ if __name__ == '__main__':
         sys.exit()
     if not os.path.exists("./data/.is_first_run"):
         print("检测到首次运行一键包，正在打开说明。")
-        if not pw.first_run():
+        if not pwp.first_run():
             print("用户已取消，程序退出。")
             sys.exit()
 
