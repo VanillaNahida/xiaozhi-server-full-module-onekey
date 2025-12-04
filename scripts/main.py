@@ -368,20 +368,21 @@ def main():
     set_environment_variables()
     
     while True:
-        print("=" * 50)
+        print("=" * 55)
+        print("首次运行建议直接按回车执行 1. 一键启动所有服务并自动初始化")
         print("请选择操作: ")
-        print("=" * 50)
-        print("1. 一键启动所有服务（留空则为默认）")
+        print("=" * 55)
+        print("1. 一键启动所有服务并自动初始化")
         print("2. 单独启动MySQL服务")
         print("3. 单独启动Redis服务")
         print("4. 单独启动前端服务")
         print("5. 单独启动后端API服务器")
         print("6. 单独启动小智AI服务器(Python)")
-        print("=" * 50)
+        print("=" * 55)
         print("7. 重新配置服务器密钥")
         print("8. 退出")
-        print("=" * 50)
-        choice = input("请输入选项 (1-7)(留空则默认1): ") or '1'
+        print("=" * 55)
+        choice = input("请输入选项 (1-7)(留空则默认执行1): ") or '1'
         
         if choice == '1':
             start_all_services()
