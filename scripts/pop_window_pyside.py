@@ -6,6 +6,22 @@ import requests
 import subprocess
 import webbrowser
 from datetime import datetime, timedelta
+
+# 导入PySide6，如果报错则安装
+try:
+    from PySide6 import QtWidgets, QtGui, QtCore
+except ImportError:
+    print("PySide6未安装，正在尝试安装...")
+    import subprocess
+    import sys
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "PySide6"])
+        print("PySide6安装成功！")
+        from PySide6 import QtWidgets, QtGui, QtCore
+    except subprocess.CalledProcessError:
+        print("PySide6安装失败！")
+
+
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                               QWidget, QTextEdit, QPushButton, QCheckBox, QMessageBox,
                               QScrollArea, QLabel, QFrame, QDialog)
