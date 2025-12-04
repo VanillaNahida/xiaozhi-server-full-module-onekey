@@ -4,6 +4,19 @@ import time
 import requests
 import subprocess
 
+try:
+    import webbrowser
+except ImportError:
+    print("正在安装webbrowser模块...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "webbrowser"])
+    import webbrowser
+    print("webbrowser模块安装成功！")
+except subprocess.CalledProcessError:
+    print("webbrowser模块安装失败！")
+
+except Exception as e:
+    print(f"安装出错！{e}")
+
 # 获取当前脚本所在目录的父目录作为基础路径
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 runtime_dir = os.path.join(base_dir, 'runtime')
@@ -219,6 +232,10 @@ def start_frontend_service():
         # 启动服务（不等待）
         print("启动前端服务...")
         start_process('title 前端服务器 & npm run serve', cwd=frontend_cwd, window_title="前端服务器")
+        print("请在浏览器中访问 http://localhost:8001 查看。")
+        print("即将在5秒后自动打开浏览器...")
+        time.sleep(5)
+        webbrowser.open("http://localhost:8001")
     else:
         print("前端依赖安装失败！")
 
