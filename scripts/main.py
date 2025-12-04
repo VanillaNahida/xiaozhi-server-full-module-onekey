@@ -246,6 +246,14 @@ def start_python_service():
     else:
         print("无法启动服务，配置未初始化或用户取消了操作。")
 
+def start_init_config():
+    """启动小智服务端配置文件初始化工具"""
+    print("正在重新配置服务器密钥...")
+    python_cwd = os.path.join(base_dir, 'scripts')
+    python_cmd = 'python init_config.py'
+    # 启动服务（不等待）
+    start_process(python_cmd, cwd=python_cwd, window_title="小智AI服务器")
+
 def start_all_services():
     """一键启动所有服务，参考一键启动带智控台的服务端.bat"""
     if not check_mysql():
@@ -362,13 +370,16 @@ def main():
     while True:
         print("=" * 50)
         print("请选择操作: ")
+        print("=" * 50)
         print("1. 一键启动所有服务（留空则为默认）")
         print("2. 单独启动MySQL服务")
         print("3. 单独启动Redis服务")
         print("4. 单独启动前端服务")
         print("5. 单独启动后端API服务器")
         print("6. 单独启动小智AI服务器(Python)")
-        print("7. 退出")
+        print("=" * 50)
+        print("7. 重新配置服务器密钥")
+        print("8. 退出")
         print("=" * 50)
         choice = input("请输入选项 (1-7)(留空则默认1): ") or '1'
         
@@ -385,6 +396,8 @@ def main():
         elif choice == '6':
             start_python_service()
         elif choice == '7':
+            start_init_config()
+        elif choice == '8':
             print("退出程序...")
             sys.exit(0)
         elif choice == '':
