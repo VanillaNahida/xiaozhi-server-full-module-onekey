@@ -17,7 +17,6 @@ except ImportError:
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "PySide6"])
         print("PySide6安装成功！")
-        from PySide6 import QtWidgets, QtGui, QtCore
     except subprocess.CalledProcessError:
         print("PySide6安装失败！")
 
@@ -28,7 +27,6 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayo
 from PySide6.QtCore import Qt, QTimer, QUrl, QPoint
 from PySide6.QtGui import (QFont, QCursor, QDesktopServices, QTextCursor, 
                           QTextCharFormat, QColor, QMouseEvent)
-
 # GitHub仓库信息
 GITHUB_REPO_OWNER = "VanillaNahida"
 GITHUB_REPO_NAME = "xiaozhi-server-full-module-onekey"
@@ -318,7 +316,9 @@ class GitHubReleaseChecker(QDialog):
         
         if published_at:
             published_date = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
-            local_date = published_date.strftime("%Y-%m-%d %H:%M:%S")
+            # 转换为北京时间（UTC+8）
+            beijing_date = published_date + timedelta(hours=8)
+            local_date = beijing_date.strftime("%Y-%m-%d %H:%M:%S")
         else:
             local_date = "未知"
         
