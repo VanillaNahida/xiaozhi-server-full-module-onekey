@@ -3,6 +3,7 @@ import sys
 import time
 import requests
 import subprocess
+import ctypes
 
 try:
     import webbrowser
@@ -239,6 +240,41 @@ def start_frontend_service():
     else:
         print("前端依赖安装失败！")
 
+def end_database_processes(use_admin=False):
+    """使用管理员权限结束MySQL和Redis相关进程"""
+    if use_admin:
+        try:
+            print("正在以管理员权限结束MySQL和Redis相关进程...")
+            print("期间可能会弹出四次UAC弹窗，请点击“是”。")
+            # 结束MySQL相关进程
+            print("结束MySQL相关进程...")
+            # 以管理员权限执行taskkill命令结束mysqld.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM mysqld.exe /T", None, 0)
+            # 以管理员权限执行taskkill命令结束mysql.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM mysql.exe /T", None, 0)
+            # 结束Redis相关进程
+            print("结束Redis相关进程...")
+            # 以管理员权限执行taskkill命令结束redis-server.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-server.exe /T", None, 0)
+            # 以管理员权限执行taskkill命令结束redis-cli.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-cli.exe /T", None, 0)
+            print("已成功执行操作！")
+        except Exception as e:
+            print(f"以管理员身份结束进程时出错: {e}")
+    else:
+        try:
+            print("正在结束MySQL和Redis相关进程...")
+            print("结束MySQL相关进程...")
+            subprocess.run("taskkill /F /IM mysqld.exe /T", shell=True)
+            subprocess.run("taskkill /F /IM mysql.exe /T", shell=True)
+            print("结束Redis相关进程...")
+            subprocess.run("taskkill /F /IM redis-server.exe /T", shell=True)
+            subprocess.run("taskkill /F /IM redis-cli.exe /T", shell=True)
+        except Exception as e:
+            print(f"结束进程时出错: {e}")
+
+    # 等待用户确认
+    input("按回车键继续...")
 
 def start_backend_service():
     """单独启动后端API服务器"""
@@ -315,10 +351,6 @@ def start_all_services():
         # 启动服务（不等待）
         print("启动前端服务...")
         start_process('title 前端服务器 & npm run serve', cwd=frontend_cwd, window_title="前端服务器")
-        print("请在浏览器中访问 http://localhost:8001 查看。")
-        print("即将在5秒后自动打开浏览器...")
-        time.sleep(5)
-        webbrowser.open("http://localhost:8001")
     else:
         print("前端依赖安装失败！")
     
@@ -378,7 +410,9 @@ def start_all_services():
     else:
         print("检测到配置文件尚未初始化，正在启动初始化...")
         start_process('python scripts\init_config.py', cwd=base_dir, window_title="小智服务端配置初始化")
+    print("已自动打开智控台。")
     print("所有服务启动完成！")
+    webbrowser.open("http://localhost:8001")
     time.sleep(5)
 
 def main():
@@ -401,9 +435,11 @@ def main():
         print("6. 单独启动小智AI服务器(Python)")
         print("=" * 55)
         print("7. 重新配置服务器密钥")
-        print("8. 退出")
+        print("8. 结束MySQL和Redis相关进程")
+        print("9. 结束MySQL相关进程（管理员身份）")
+        print("10. 退出")
         print("=" * 55)
-        choice = input("请输入选项 (1-7)(留空则默认执行1): ") or '1'
+        choice = input("请输入选项 (1-10)(留空则默认执行1): ") or '1'
         
         if choice == '1':
             start_all_services()
@@ -420,12 +456,16 @@ def main():
         elif choice == '7':
             start_init_config()
         elif choice == '8':
+            end_database_processes(False)
+        elif choice == '9':
+            end_database_processes(True)
+        elif choice == '10':
             print("退出程序...")
             sys.exit(0)
         elif choice == '':
             start_all_services()
         else:
-            print("无效选项，请重新输入有效选项(1-7)")
+            print("无效选项，请重新输入有效选项(1-10)")
             time.sleep(3)
 
         os.system('cls')
