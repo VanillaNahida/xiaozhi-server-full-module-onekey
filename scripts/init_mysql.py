@@ -221,9 +221,9 @@ def clean_data_directory(data_dir):
                 logger.warning("💡 可能是权限问题，请尝试以管理员身份运行")
                 return False
         else:
-            logger.info("   目录为空，无需清理")
+            logger.info("💡 目录为空，无需清理")
     else:
-        logger.info("   数据目录不存在，将自动创建")
+        logger.info("💡 数据目录不存在，将自动创建")
     
     # 确保目录存在
     try:
@@ -250,7 +250,7 @@ def show_progress(current, total, message="处理中"):
 
 def create_my_ini():
     """创建MySQL配置文件"""
-    logger.info("📄 创建MySQL配置文件...")
+    logger.info("📄 正在创建MySQL配置文件...")
     
     try:
         project_root = get_project_root()
@@ -260,9 +260,7 @@ def create_my_ini():
         # 确保目录存在
         logger.info("📁 准备目录结构...")
         try:
-            os.makedirs(mysql_dir, exist_ok=True)
             os.makedirs(data_dir, exist_ok=True)
-            logger.info(f"✅ 目录创建成功: {mysql_dir}")
             logger.info(f"✅ 目录创建成功: {data_dir}")
         except Exception as e:
             logger.error(f"❌ 创建目录失败: {str(e)}")
@@ -306,7 +304,7 @@ port=3306
         logger.info("📊 配置信息摘要:")
         logger.info(f"   - 数据目录: {data_dir}")
         logger.info(f"   - 配置文件: {my_ini_path}")
-        logger.info(f"   - MySQL版本目录: {mysql_dir}")
+        logger.info(f"   - MySQL目录: {mysql_dir}")
         
         return mysql_dir, data_dir, my_ini_path
         
