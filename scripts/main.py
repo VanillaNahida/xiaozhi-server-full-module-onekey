@@ -205,7 +205,9 @@ def start_mysql_service():
         else:
             print("已取消MySQL数据库初始化操作！")
             return
-    
+            
+    print("开始结束Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
+    end_database_processes(False)
     print("启动MySQL服务...")
     mysql_cmd = 'mysqld --console'
     start_process(mysql_cmd, window_title="MySQL服务器")
@@ -214,6 +216,8 @@ def start_mysql_service():
 
 def start_redis_service():
     """单独启动Redis服务"""
+    print("开始结束Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
+    end_database_processes(False)
     print("启动Redis服务...")
     redis_cwd = os.path.join(base_dir, 'data')
     print(f"Redis运行目录: {redis_cwd}")
@@ -258,7 +262,6 @@ def end_database_processes(use_admin=False):
             ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-server.exe /T", None, 0)
             # 以管理员权限执行taskkill命令结束redis-cli.exe进程
             ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-cli.exe /T", None, 0)
-            print("已成功执行操作！")
         except Exception as e:
             print(f"以管理员身份结束进程时出错: {e}")
     else:
@@ -273,8 +276,8 @@ def end_database_processes(use_admin=False):
         except Exception as e:
             print(f"结束进程时出错: {e}")
 
-    # 等待用户确认
-    input("按回车键继续...")
+    print("已成功执行操作！将在3秒后继续...")
+    time.sleep(3)
 
 def start_backend_service():
     """单独启动后端API服务器"""
@@ -331,6 +334,8 @@ def start_all_services():
     
     # 1. 启动MySQL服务
     print("启动MySQL服务...")
+    print("开始结束MySQL和Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
+    end_database_processes(False)
     mysql_cmd = 'mysqld --console'
     start_process(mysql_cmd, window_title="MySQL服务器")
 
