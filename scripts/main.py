@@ -442,9 +442,10 @@ def main():
         print("7. 重新配置服务器密钥")
         print("8. 结束MySQL和Redis相关进程")
         print("9. 结束MySQL相关进程（管理员身份）")
-        print("10. 退出")
+        print("10. 重新初始化MySQL数据库")
+        print("11. 退出")
         print("=" * 55)
-        choice = input("请输入选项 (1-10)(留空则默认执行1): ") or '1'
+        choice = input("请输入选项 (1-11)(留空则默认执行1): ") or '1'
         
         if choice == '1':
             start_all_services()
@@ -465,12 +466,14 @@ def main():
         elif choice == '9':
             end_database_processes(True)
         elif choice == '10':
+            start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="小智服务端MySQL数据库初始化")
+        elif choice == '11':
             print("退出程序...")
             sys.exit(0)
         elif choice == '':
             start_all_services()
         else:
-            print("无效选项，请重新输入有效选项(1-10)")
+            print("无效选项，请重新输入有效选项(1-11)")
             time.sleep(3)
 
         os.system('cls')

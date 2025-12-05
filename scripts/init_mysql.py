@@ -186,7 +186,7 @@ def clean_data_directory(data_dir):
             logger.warning("============================================")
             
             # 获取用户确认
-            confirmation = input("🔍 请确认是否继续清理操作 (yes/no): ").strip().lower()
+            confirmation = input("🔍 请确认是否继续清理操作！输入yes或y将删除并重建数据库！ (yes/no): ").strip().lower()
             
             if confirmation not in ['yes', 'y']:
                 logger.warning("❌ 清理操作已取消")
