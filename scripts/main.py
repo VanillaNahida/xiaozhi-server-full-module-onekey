@@ -315,6 +315,10 @@ def start_all_services():
         # 启动服务（不等待）
         print("启动前端服务...")
         start_process('title 前端服务器 & npm run serve', cwd=frontend_cwd, window_title="前端服务器")
+        print("请在浏览器中访问 http://localhost:8001 查看。")
+        print("即将在5秒后自动打开浏览器...")
+        time.sleep(5)
+        webbrowser.open("http://localhost:8001")
     else:
         print("前端依赖安装失败！")
     
