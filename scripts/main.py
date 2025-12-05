@@ -206,8 +206,8 @@ def start_mysql_service():
             print("已取消MySQL数据库初始化操作！")
             return
             
-    print("开始结束Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
-    end_database_processes(False)
+    print("开始结束MySQL，确保服务已关闭，防止端口冲突导致启动失败...")
+    kill_mysql(False)
     print("启动MySQL服务...")
     mysql_cmd = 'mysqld --console'
     start_process(mysql_cmd, window_title="MySQL服务器")
@@ -216,8 +216,8 @@ def start_mysql_service():
 
 def start_redis_service():
     """单独启动Redis服务"""
-    print("开始结束Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
-    end_database_processes(False)
+    print("开始结束Redis，确保服务已关闭，防止端口冲突导致启动失败...")
+    kill_redis(False)
     print("启动Redis服务...")
     redis_cwd = os.path.join(base_dir, 'data')
     print(f"Redis运行目录: {redis_cwd}")
@@ -243,6 +243,54 @@ def start_frontend_service():
         webbrowser.open("http://localhost:8001")
     else:
         print("前端依赖安装失败！")
+
+def kill_mysql(use_admin=False):
+    """单独结束MySQL服务"""
+    if use_admin:
+        try:
+            print("正在以管理员权限结束MySQL进程...")
+            print("期间可能会弹出两次UAC弹窗，请点击“是”。")
+            # 结束MySQL相关进程
+            # 以管理员权限执行taskkill命令结束mysqld.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM mysqld.exe /T", None, 0)
+            # 以管理员权限执行taskkill命令结束mysql.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM mysql.exe /T", None, 0)
+        except Exception as e:
+            print(f"以管理员身份结束进程时出错: {e}")
+    else:
+        try:
+            print("正在结束MySQL...")
+            subprocess.run("taskkill /F /IM mysqld.exe /T", shell=True)
+            subprocess.run("taskkill /F /IM mysql.exe /T", shell=True)
+        except Exception as e:
+            print(f"结束进程时出错: {e}")
+
+    print("已成功执行操作！将在3秒后继续...")
+    time.sleep(3)
+
+def kill_redis(use_admin=False):
+    """单独结束MySQL服务"""
+    if use_admin:
+        try:
+            print("正在以管理员权限结束MySQL和Redis相关进程...")
+            print("期间可能会弹出四次UAC弹窗，请点击“是”。")
+            # 以管理员权限执行taskkill命令结束redis-server.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-server.exe /T", None, 0)
+            # 以管理员权限执行taskkill命令结束redis-cli.exe进程
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", "taskkill.exe", "/F /IM redis-cli.exe /T", None, 0)
+        except Exception as e:
+            print(f"以管理员身份结束进程时出错: {e}")
+    else:
+        try:
+            print("正在结束Redis...")
+            print("结束Redis相关进程...")
+            subprocess.run("taskkill /F /IM redis-server.exe /T", shell=True)
+            subprocess.run("taskkill /F /IM redis-cli.exe /T", shell=True)
+        except Exception as e:
+            print(f"结束进程时出错: {e}")
+
+    print("已成功执行操作！将在3秒后继续...")
+    time.sleep(3)
 
 def end_database_processes(use_admin=False):
     """使用管理员权限结束MySQL和Redis相关进程"""
@@ -441,7 +489,7 @@ def main():
         print("=" * 55)
         print("7. 重新配置服务器密钥")
         print("8. 结束MySQL和Redis相关进程")
-        print("9. 结束MySQL相关进程（管理员身份）")
+        print("9. 结束MySQL和Redis相关进程（管理员身份）")
         print("10. 重新初始化MySQL数据库")
         print("11. 退出")
         print("=" * 55)
