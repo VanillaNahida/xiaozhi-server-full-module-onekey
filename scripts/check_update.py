@@ -93,6 +93,16 @@ def check_path_for_chinese():
     else:
         return True
         
+
+def switch_mysql_version():
+    """
+    切换MySQL版本。
+    """
+    base_dir = os.path.join(script_dir)
+    wrapped = rf'start "切换MySQL版本" "{python_path}" scripts\switch_mysql_version.py'
+    subprocess.Popen(wrapped, cwd=base_dir, shell=True)
+
+
 if __name__ == '__main__':
     # 检查路径合法性
     if not check_path_for_chinese():
@@ -105,6 +115,14 @@ if __name__ == '__main__':
 
     os.system("cls")
 
+    # 检查MySQL版本是否需要切换
+    mysql_dir = os.path.join("./runtime/mysql-9.4.0")
+    if os.path.exists(mysql_dir) or not os.path.exists("./runtime/mysql-8.4.7"):
+        print("检测到MySQL 版本不符合要求，可能会导致服务端无法运行，正在切换到8.4.7版本...")
+        switch_mysql_version()
+        print("MySQL版本切换中，程序即将退出...")
+        sys.exit()
+    
     if os.path.exists("skip_update.txt"):
         print("检测到 skip_update.txt，跳过更新检查。")
     else:
