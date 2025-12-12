@@ -90,7 +90,7 @@ def set_environment_variables():
     maven_path = os.path.join(runtime_dir, 'maven-3.9.11', 'bin')
     m2_home = os.path.join(runtime_dir, 'maven-3.9.11')
     # MySQL环境变量
-    mysql_path = os.path.join(runtime_dir, 'mysql-9.4.0', 'bin')
+    mysql_path = os.path.join(runtime_dir, 'mysql-8.4.7', 'bin')
     # Redis环境变量
     redis_path = os.path.join(runtime_dir, 'Redis')
     # Node.js环境变量

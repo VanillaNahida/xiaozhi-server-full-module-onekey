@@ -254,7 +254,7 @@ def create_my_ini():
     
     try:
         project_root = get_project_root()
-        mysql_dir = os.path.join(project_root, 'runtime', 'mysql-9.4.0')
+        mysql_dir = os.path.join(project_root, 'runtime', 'mysql-8.4.7')
         data_dir = os.path.join(project_root, 'data', 'mysql')
         
         # 确保目录存在
