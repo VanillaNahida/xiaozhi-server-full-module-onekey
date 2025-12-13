@@ -175,3 +175,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print_info("即将在5秒后自动退出...")
+    time.sleep(5)
