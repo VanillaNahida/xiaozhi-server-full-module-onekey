@@ -270,8 +270,8 @@ def create_my_ini():
         my_ini_path = os.path.join(mysql_dir, 'my.ini')
         
         # 配置文件内容（使用Windows路径格式）
-        # 将路径中的/替换为\
-        data_dir_win = data_dir.replace('/', '\\')
+        # 将路径中的/替换为\，然后将\替换为\\以确保正确转义
+        data_dir_win = data_dir.replace('/', '\\').replace('\\', '\\\\')
         
         my_ini_content = f"""
 [mysqld]

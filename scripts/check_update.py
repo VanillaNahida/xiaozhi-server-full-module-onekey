@@ -102,6 +102,40 @@ def switch_mysql_version():
     wrapped = rf'start "切换MySQL版本" "{python_path}" scripts\switch_mysql_version.py'
     subprocess.Popen(wrapped, cwd=base_dir, shell=True)
 
+def check_mysql_config():
+    """
+    检查MySQL配置文件是否合法，并确保datadir路径使用双反斜杠转义。
+    """
+    # 构建绝对路径
+    config_path = os.path.join(script_dir, "runtime", "mysql-8.4.7", "my.ini")
+    
+    with open(config_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    # 使用正则表达式查找datadir行
+    pattern = r'(datadir=)(.*)'
+    match = re.search(pattern, content)
+    
+    if match:
+        datadir_key = match.group(1)
+        datadir_path = match.group(2)
+        
+        # 检查路径中是否有单反斜杠
+        if '\\' in datadir_path and not all('\\' in part for part in datadir_path.split('\\') if part):
+            # 替换单反斜杠为双反斜杠
+            new_datadir_path = datadir_path.replace('\\', '\\\\')
+            new_content = content.replace(match.group(0), f'{datadir_key}{new_datadir_path}')
+            
+            # 将修改后的内容写回配置文件
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            
+            print(f"已修复MySQL配置文件中的datadir路径转义: {datadir_path} -> {new_datadir_path}")
+        else:
+            print("MySQL配置文件中的datadir路径转义已正确")
+    else:
+        print("未在MySQL配置文件中找到datadir行")
+
 
 if __name__ == '__main__':
     # 检查路径合法性
@@ -122,7 +156,10 @@ if __name__ == '__main__':
         switch_mysql_version()
         print("MySQL版本切换中，程序即将退出...")
         sys.exit()
-    
+    # 检查mysql配置文件
+    if os.path.exists("./runtime/mysql-8.4.7/my.ini"):
+        check_mysql_config()
+
     if os.path.exists("skip_update.txt"):
         print("检测到 skip_update.txt，跳过更新检查。")
     else:
