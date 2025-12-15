@@ -39,7 +39,7 @@ def uninstall_opuslib():
 # 定义下载opus.dll函数
 def download_opus_dll():
     """从指定链接下载opus.dll"""
-    url = "https://drive.xcnahida.cn/f/d/90CG/opus.dll"
+    url = "https://drive.xcnahida.cn/f/d/jRSj/opus.dll"
     # 动态计算目标目录
     target_dir = Path(os.path.join(runtime_dir, 'conda_env'))
     
