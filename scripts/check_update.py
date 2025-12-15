@@ -120,17 +120,22 @@ def check_mysql_config():
         datadir_key = match.group(1)
         datadir_path = match.group(2)
         
-        # 检查路径中是否有单反斜杠
-        if '\\' in datadir_path and not all('\\' in part for part in datadir_path.split('\\') if part):
-            # 替换单反斜杠为双反斜杠
-            new_datadir_path = datadir_path.replace('\\', '\\\\')
-            new_content = content.replace(match.group(0), f'{datadir_key}{new_datadir_path}')
+        # 检查路径中的反斜杠是否正确（应该是双反斜杠）
+        # 使用简单的字符串替换方法处理各种情况
+        # 先将所有双反斜杠替换为一个特殊字符（比如#），然后将所有单反斜杠替换为双反斜杠，最后将特殊字符替换回双反斜杠
+        # 这样可以确保无论多少个连续反斜杠，最终都会变成双反斜杠
+        # 使用正则表达式将所有连续的反斜杠序列替换为恰好两个反斜杠
+        desired_path = re.sub(r'\\+', r'\\\\', datadir_path)
+        
+        # 如果当前路径与期望的双反斜杠路径不同，则进行替换
+        if datadir_path != desired_path:
+            new_content = content.replace(match.group(0), f'{datadir_key}{desired_path}')
             
             # 将修改后的内容写回配置文件
             with open(config_path, "w", encoding="utf-8") as f:
                 f.write(new_content)
             
-            print(f"已修复MySQL配置文件中的datadir路径转义: {datadir_path} -> {new_datadir_path}")
+            print(f"已修复MySQL配置文件中的datadir路径转义: {datadir_path} -> {desired_path}")
         else:
             print("MySQL配置文件中的datadir路径转义已正确")
     else:
