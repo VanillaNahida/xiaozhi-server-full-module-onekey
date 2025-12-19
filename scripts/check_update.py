@@ -149,21 +149,22 @@ if __name__ == '__main__':
             sys.exit()
 
     os.system("cls")
+    # 先检查云端更新
+    if os.path.exists("skip_update.txt"):
+        print("检测到 skip_update.txt，跳过更新检查。")
+    else:
+        check_updates()
 
-    # 检查MySQL版本是否需要切换
+    # 再检查MySQL版本是否需要切换
     mysql_dir = os.path.join("./runtime/mysql-9.4.0")
     if os.path.exists(mysql_dir) or not os.path.exists("./runtime/mysql-8.4.7"):
         print("检测到MySQL 版本不符合要求，可能会导致服务端无法运行，正在切换到8.4.7版本...")
         switch_mysql_version()
         print("MySQL版本切换中，程序即将退出...")
         sys.exit()
-    # 检查mysql配置文件
+    # 检查mysql配置文件是否需要修复
     if os.path.exists("./runtime/mysql-8.4.7/my.ini"):
         check_mysql_config()
 
-    if os.path.exists("skip_update.txt"):
-        print("检测到 skip_update.txt，跳过更新检查。")
-    else:
-        check_updates()
     # 启动一键包
     start_onekey()
