@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 import requests
 import subprocess
 import ctypes
@@ -64,16 +65,20 @@ def welcome():
     纳西妲世界第一可爱！
 """
     print_gradient_text(text, (200, 250, 50), (0, 128, 0))
-    text = """
+    # 读取版本号文件动态显示版本号
+    with open(os.path.join(base_dir, 'version.json'), 'r', encoding='utf-8') as f:
+        version_data = json.load(f)
+        version = version_data.get('tag_name', 'v1.0.0')
+    text = f"""
 ===================================================================================
-    小智AI全模块一键包启动器 V1.0.0 Patch 1 By: 哔哩哔哩: @香草味的纳西妲喵
+    小智AI全模块一键包启动器 {version} By: 哔哩哔哩: @香草味的纳西妲喵
     个人主页: https://space.bilibili.com/1347891621
     GitHub:   https://github.com/VanillaNahida
     我的博客: https://www.xcnahida.cn/
     小智服务端项目开源地址: https://github.com/xinnan-tech/xiaozhi-esp32-server
 ===================================================================================
     使用过程中有任何疑问欢迎来群里讨论，如有报错请截图反馈。
-    群: https://www.bilibili.com/opus/1045130607332425735
+    QQ群: https://www.bilibili.com/opus/1045130607332425735
     感谢你的使用！
 ===================================================================================
 """
@@ -82,7 +87,7 @@ def welcome():
 
 # 设置环境变量
 def set_environment_variables():
-    """设置环境变量，参考激活环境变量.bat"""
+    """设置环境变量.bat"""
     # Java环境变量
     jdk_path = os.path.join(runtime_dir, 'jdk-21.0.9', 'bin')
     java_home = os.path.join(runtime_dir, 'jdk-21.0.9')
@@ -163,7 +168,7 @@ def check_config():
         print("正在打开配置初始化工具...")
         # 启动配置初始化工具并等待其完成
         print("请完成配置初始化...")
-        success = start_process('python scripts\init_config.py', cwd=base_dir, window_title="小智服务端配置初始化", wait=True)
+        success = start_process('python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化", wait=True)
         
         # 检查配置是否已初始化
         if not os.path.exists(config_success_file):
@@ -354,7 +359,7 @@ def start_init_config():
     """启动小智服务端配置文件初始化工具"""
     print("正在重新配置服务器密钥...")
     python_cwd = os.path.join(base_dir, 'scripts')
-    python_cmd = 'python init_config.py'
+    python_cmd = 'python init_config_pyside6.py'
     # 启动服务（不等待）
     start_process(python_cmd, cwd=python_cwd, window_title="小智AI服务器")
 
@@ -462,10 +467,10 @@ def start_all_services():
         start_process(python_cmd, cwd=python_cwd, window_title="小智AI服务器")
     else:
         print("检测到配置文件尚未初始化，正在启动初始化...")
-        start_process('python scripts\init_config.py', cwd=base_dir, window_title="小智服务端配置初始化")
-    print("已自动打开智控台。")
+        print("已自动打开智控台。请前往智控台注册登录账号后在初始化窗口填写服务器密钥。")
+        webbrowser.open("http://localhost:8001")
+        start_process('python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化")
     print("所有服务启动完成！")
-    webbrowser.open("http://localhost:8001")
     time.sleep(5)
 
 def main():
