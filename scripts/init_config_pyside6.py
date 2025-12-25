@@ -10,10 +10,10 @@ from ruamel.yaml import YAML
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
     QPushButton, QLabel, QLineEdit, QMessageBox, QProgressBar, QDialog,
-    QGridLayout, QFrame, QScrollArea
+    QGridLayout, QFrame, QScrollArea, QSizePolicy
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QUrl
-from PySide6.QtGui import QFont, QIcon, QClipboard
+from PySide6.QtGui import QFont, QIcon, QClipboard, QMovie
 from PySide6.QtGui import QDesktopServices
 
 class ConfigWorker(QThread):
@@ -312,7 +312,7 @@ class SecretInputDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("服务器密钥配置")
-        self.setFixedSize(500, 350)  # 增加窗口高度以容纳新按钮
+        self.setFixedSize(500, 520)  # 增加窗口高度以容纳GIF
         self.setWindowModality(Qt.ApplicationModal)
         # 设置窗口置顶，并且只保留最小化和关闭按钮
         self.setWindowFlags(
@@ -320,16 +320,6 @@ class SecretInputDialog(QDialog):
         )
         # 设置窗口居中显示
         self.center()
-        
-    def center(self):
-        # 获取屏幕几何信息
-        screen_geometry = QApplication.primaryScreen().geometry()
-        # 获取窗口几何信息
-        window_geometry = self.frameGeometry()
-        # 计算窗口居中位置
-        window_geometry.moveCenter(screen_geometry.center())
-        # 设置窗口位置
-        self.move(window_geometry.topLeft())
         
         layout = QVBoxLayout(self)
         
@@ -345,7 +335,8 @@ class SecretInputDialog(QDialog):
             "3. 进入【参数管理】->【参数字典】页面",
             "4. 找到【server.secret】参数",
             "5. 复制其参数值",
-            "6. 将复制的值粘贴到下方输入框中，或者点击【从剪贴板粘贴密钥】按钮一键粘贴。"
+            "6. 将复制的值粘贴到下方输入框中，或者点击【从剪贴板粘贴密钥】按钮一键粘贴。",
+            "*点击下方图片查看大图"
         ]
         
         steps_text = "<br>".join(steps)
@@ -353,6 +344,36 @@ class SecretInputDialog(QDialog):
         steps_label.setAlignment(Qt.AlignLeft)
         steps_label.setWordWrap(True)
         layout.addWidget(steps_label)
+        
+        # GIF 显示区域
+        gif_layout = QHBoxLayout()
+        gif_layout.setAlignment(Qt.AlignCenter)
+        
+        self.gif_label = QLabel()
+        self.gif_label.setAlignment(Qt.AlignCenter)
+        self.gif_label.setStyleSheet("border: 1px solid #ccc; padding: 5px;")
+        self.gif_label.setCursor(Qt.PointingHandCursor)  # 设置鼠标指针为手型
+        
+        # 加载 GIF
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        gif_path = os.path.join(script_dir, 'assets', 'server_secret_config.gif')
+        
+        if os.path.exists(gif_path):
+            self.movie = QMovie(gif_path)
+            # 设置 GIF 显示大小
+            self.gif_label.setFixedSize(400, 200)
+            # 设置GIF自适应QLabel大小
+            self.movie.setScaledSize(self.gif_label.size())
+            self.gif_label.setMovie(self.movie)
+            self.movie.start()
+            # 连接点击事件
+            self.gif_label.mousePressEvent = self.show_large_gif
+        else:
+            self.gif_label.setText("GIF 图片加载失败")
+            self.gif_label.setFixedSize(400, 200)
+        
+        gif_layout.addWidget(self.gif_label)
+        layout.addLayout(gif_layout)
         
         # 密钥输入框
         secret_layout = QHBoxLayout()
@@ -393,6 +414,58 @@ class SecretInputDialog(QDialog):
         
         self.server_secret = None
     
+    def center(self):
+        """将窗口居中显示"""
+        # 获取屏幕几何信息
+        screen_geometry = QApplication.primaryScreen().geometry()
+        # 获取窗口几何信息
+        window_geometry = self.frameGeometry()
+        # 计算窗口居中位置
+        window_geometry.moveCenter(screen_geometry.center())
+        # 设置窗口位置
+        self.move(window_geometry.topLeft())
+    
+    def show_large_gif(self, event):
+        """显示大图 GIF 对话框"""
+        large_dialog = QDialog(self)
+        large_dialog.setWindowTitle("查看大图")
+        large_dialog.setWindowModality(Qt.ApplicationModal)
+        large_dialog.setWindowFlags(
+            Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint
+        )
+        
+        layout = QVBoxLayout(large_dialog)
+        
+        large_gif_label = QLabel()
+        large_gif_label.setAlignment(Qt.AlignCenter)
+        
+        # 加载 GIF
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        gif_path = os.path.join(script_dir, 'assets', 'server_secret_config.gif')
+        
+        if os.path.exists(gif_path):
+            movie = QMovie(gif_path)
+            large_gif_label.setMovie(movie)
+            movie.start()
+        else:
+            large_gif_label.setText("GIF 图片加载失败")
+        
+        layout.addWidget(large_gif_label)
+        
+        # 设置对话框大小（根据 GIF 原始大小调整）
+        if hasattr(self, 'movie'):
+            large_dialog.resize(800, 400)
+        else:
+            large_dialog.resize(400, 200)
+        
+        # 居中显示在屏幕上
+        screen = QApplication.primaryScreen().geometry()
+        large_dialog.move(
+            (screen.width() - large_dialog.width()) // 2,
+            (screen.height() - large_dialog.height()) // 2
+        )
+        
+        large_dialog.exec()
     def validate_secret(self):
         secret = self.secret_input.text().strip()
         self.ok_button.setEnabled(len(secret) > 0)
