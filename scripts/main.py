@@ -50,27 +50,35 @@ def print_gradient_text(text, start_color, end_color):
     # 组合所有字符并重置颜色
     print(''.join(gradient_text) + '\033[0m')
 
-def welcome():
-    """
-    欢迎界面
-    """
-    text = """
- __      __            _  _  _            _   _         _      _      _        
- \ \    / /           (_)| || |          | \ | |       | |    (_)    | |       
-  \ \  / /__ _  _ __   _ | || |  __ _    |  \| |  __ _ | |__   _   __| |  __ _ 
-   \ \/ // _` || '_ \ | || || | / _` |   | . ` | / _` || '_ \ | | / _` | / _` |
-    \  /| (_| || | | || || || || (_| |   | |\  || (_| || | | || || (_| || (_| |
-     \/  \__,_||_| |_||_||_||_| \__,_|   |_| \_| \__,_||_| |_||_| \__,_| \__,_|   
-
-    纳西妲世界第一可爱！
+def get_hitokoto():
+    """获取一言"""
+    print_gradient_text("正在加载中，请耐心等待...", (200, 250, 50), (0, 128, 0))
+    try:
+        response = requests.get('https://v1.hitokoto.cn/', timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            hitokoto = data.get('hitokoto', '')
+            from_ = data.get('from', '')
+            from_who = data.get('from_who', '未知')
+            if not from_who:
+                from_who = '未知'
+            return True, f"""===================================【一言】========================================
+    {hitokoto}  —— ⌈{from_}⌋ {from_who}
+===================================================================================
 """
-    print_gradient_text(text, (200, 250, 50), (0, 128, 0))
+    except Exception as e:
+        return False, ""
+
+def get_welcome_text():
+    """生成欢迎页面文本"""
     # 读取版本号文件动态显示版本号
     with open(os.path.join(base_dir, 'version.json'), 'r', encoding='utf-8') as f:
         version_data = json.load(f)
-        version = version_data.get('tag_name', 'v1.0.0')
+        version = version_data.get('tag_name', '')
+    # 获取一言
+    hitokoto_bool, hitokoto_text = get_hitokoto()
     text = f"""
-===================================================================================
+==========================【欢迎使用小智AI全模块一键包】===========================
     小智AI全模块一键包启动器 {version} By: 哔哩哔哩: @香草味的纳西妲喵
     个人主页: https://space.bilibili.com/1347891621
     GitHub:   https://github.com/VanillaNahida
@@ -79,11 +87,16 @@ def welcome():
 ===================================================================================
     使用过程中有任何疑问欢迎来群里讨论，如有报错请截图反馈。
     QQ群: https://www.bilibili.com/opus/1045130607332425735
-    感谢你的使用！
-===================================================================================
-"""
-    # print_gradient_text(text, (200, 250, 50), (0, 128, 0))
+    感谢你的使用！"""
+
+    # 输出提示
     print_gradient_text(text, (160, 240, 160), (40, 200, 40))
+    if hitokoto_bool:
+        # 输出一言
+        print_gradient_text(hitokoto_text, (67, 233, 123), (56, 249, 215))
+    else:
+        line = "=" * 83
+        print_gradient_text(line, (160, 240, 160), (40, 200, 40))
 
 # 设置环境变量
 def set_environment_variables():
@@ -122,16 +135,7 @@ def set_environment_variables():
     os.environ['PYTHON_PATH'] = python_path
     os.environ['PATH'] = new_path
 
-    text = f"""🎉运行环境初始化成功！
-1. JDK 21.0.9:       {java_home}
-2. Maven 3.9.11:     {m2_home}
-3. MySQL 9.4.0:      {mysql_path}
-4. Redis:            {redis_path}
-5. Node.js v24.11.0: {node_path}
-6. Python 3.10.16:   {python_path}
-7. FFmpeg:           {ffmpeg_path}"""
-
-    print_gradient_text(text, (200, 250, 50), (0, 128, 0))
+    print_gradient_text("🎉运行环境初始化成功！\n", (200, 250, 50), (0, 128, 0))
 
 def start_process(cmd, cwd=None, window_title=None, wait=False):
     """在单独的窗口启动进程，如果wait=True则等待进程完成并返回布尔值表示成功与否"""
@@ -168,7 +172,7 @@ def check_config():
         print("正在打开配置初始化工具...")
         # 启动配置初始化工具并等待其完成
         print("请完成配置初始化...")
-        success = start_process('python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化", wait=True)
+        success = start_process(r'python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化", wait=True)
         
         # 检查配置是否已初始化
         if not os.path.exists(config_success_file):
@@ -205,15 +209,13 @@ def start_mysql_service():
         if is_init:
             # 执行初始化MySQL数据库
             print("正在初始化MySQL数据库，请不要关闭本窗口...")
-            start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
+            start_process(r'python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
             print("MySQL初始化完成，现在启动MySQL服务...")
         else:
             print("已取消MySQL数据库初始化操作！")
             return
             
-    print("开始结束MySQL，确保服务已关闭，防止端口冲突导致启动失败...")
-    kill_mysql(False)
-    print("启动MySQL服务...")
+    print("正在启动MySQL服务...")
     mysql_cmd = 'mysqld --console'
     start_process(mysql_cmd, window_title="MySQL服务器")
     print("MySQL服务已启动！")
@@ -221,9 +223,7 @@ def start_mysql_service():
 
 def start_redis_service():
     """单独启动Redis服务"""
-    print("开始结束Redis，确保服务已关闭，防止端口冲突导致启动失败...")
-    kill_redis(False)
-    print("启动Redis服务...")
+    print("正在启动Redis服务...")
     redis_cwd = os.path.join(base_dir, 'data')
     print(f"Redis运行目录: {redis_cwd}")
     redis_cmd = 'redis-server.exe'
@@ -377,7 +377,7 @@ def start_all_services():
         # 检测是否需要初始化
         if is_init:
             # 执行初始化MySQL数据库
-            start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
+            start_process(r'python scripts\init_mysql.py', cwd=base_dir, window_title="MySQL初始化", wait=True)
             print("MySQL初始化完成，继续启动其他服务...")
         else:
             print("已取消MySQL数据库初始化操作！")
@@ -387,8 +387,6 @@ def start_all_services():
     
     # 1. 启动MySQL服务
     print("启动MySQL服务...")
-    print("开始结束MySQL和Redis相关进程，确保服务已关闭，防止端口冲突导致启动失败...")
-    end_database_processes(False)
     mysql_cmd = 'mysqld --console'
     start_process(mysql_cmd, window_title="MySQL服务器")
 
@@ -469,14 +467,14 @@ def start_all_services():
         print("检测到配置文件尚未初始化，正在启动初始化...")
         print("已自动打开智控台。请前往智控台注册登录账号后在初始化窗口填写服务器密钥。")
         webbrowser.open("http://localhost:8001")
-        start_process('python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化")
+        start_process(r'python scripts\init_config_pyside6.py', cwd=base_dir, window_title="小智服务端配置初始化")
     print("所有服务启动完成！")
     time.sleep(5)
 
 def main():
     """主函数"""
     # 欢迎界面
-    welcome()
+    get_welcome_text()
     # 1. 设置环境变量
     set_environment_variables()
     
@@ -519,7 +517,7 @@ def main():
         elif choice == '9':
             end_database_processes(True)
         elif choice == '10':
-            start_process('python scripts\init_mysql.py', cwd=base_dir, window_title="小智服务端MySQL数据库初始化")
+            start_process(r'python scripts\init_mysql.py', cwd=base_dir, window_title="小智服务端MySQL数据库初始化")
         elif choice == '11':
             print("退出程序...")
             sys.exit(0)
@@ -530,20 +528,7 @@ def main():
             time.sleep(3)
 
         os.system('cls')
-        text = """
-===================================================================================
-    小智AI全模块一键包启动器 V1.0.0 Patch 1 By: 哔哩哔哩: @香草味的纳西妲喵
-    个人主页: https://space.bilibili.com/1347891621
-    GitHub:   https://github.com/VanillaNahida
-    我的博客: https://www.xcnahida.cn/
-    小智服务端项目开源地址: https://github.com/xinnan-tech/xiaozhi-esp32-server
-===================================================================================
-    使用过程中有任何疑问欢迎来群里讨论，如有报错请截图反馈。
-    群: https://www.bilibili.com/opus/1045130607332425735
-    感谢你的使用！
-===================================================================================
-"""
-        print_gradient_text(text, (160, 240, 160), (40, 200, 40))
+        get_welcome_text()
 
 if __name__ == "__main__":
     main()
