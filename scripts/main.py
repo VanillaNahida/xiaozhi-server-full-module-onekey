@@ -473,6 +473,8 @@ def start_all_services():
 
 def main():
     """主函数"""
+    # 初始化终端
+    os.system('cls')
     # 欢迎界面
     get_welcome_text()
     # 1. 设置环境变量
