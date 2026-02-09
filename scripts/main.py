@@ -63,7 +63,7 @@ def get_hitokoto():
             if not from_who:
                 from_who = '未知'
             return True, f"""===================================【一言】========================================
-    {hitokoto}  —— ⌈{from_}⌋ {from_who}
+    {hitokoto}  —— 【{from_}】 {from_who}
 ===================================================================================
 """
     except Exception as e:
