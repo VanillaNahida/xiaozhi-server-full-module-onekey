@@ -214,12 +214,45 @@ def get_pull_mode():
         print("输入无效，请重新输入！")
 
 
+def install_scripts_requirements(script_dir):
+    """安装 scripts 目录下的依赖"""
+    requirements_file = os.path.join(script_dir, "scripts", "requirements.txt")
+    mirror_url = "https://mirrors.aliyun.com/pypi/simple/"
+    trusted_host = "mirrors.aliyun.com"
+
+    print("\n开始配置并安装一键包脚本依赖...")
+    config_commands = [
+        [sys.executable, "-m", "pip", "config", "set", "global.index-url", mirror_url],
+        [sys.executable, "-m", "pip", "config", "set", "install.trusted-host", trusted_host],
+    ]
+
+    for command in config_commands:
+        result = subprocess.run(command, cwd=script_dir)
+        if result.returncode != 0:
+            print("❌ 配置 pip 镜像源失败")
+            return False
+
+    result = subprocess.run([
+        sys.executable, "-m", "pip", "install", "-r", requirements_file
+    ], cwd=script_dir)
+
+    if result.returncode == 0:
+        print("✅ 一键包脚本依赖安装成功！")
+        return True
+
+    print("❌ 一键包脚本依赖安装失败")
+    return False
+
+
 def auto_update(git_path, script_dir):
     """自动更新函数"""
     print("\n开始自动更新一键包...")
     
     # 使用代理更新代码
     pull_with_proxy(git_path)
+    
+    # 更新 scripts 依赖
+    install_scripts_requirements(script_dir)
     
     # 显示最终远程地址
     print("\n重置为默认远程地址")

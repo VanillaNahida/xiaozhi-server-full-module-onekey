@@ -1,0 +1,6 @@
+mysql-connector-python
+PyAudio
+PySide6
+requests
+ruamel.yaml
+urllib3
