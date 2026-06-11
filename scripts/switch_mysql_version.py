@@ -11,7 +11,7 @@ import hashlib
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNTIME_DIR = os.path.join(BASE_DIR, 'runtime')
 OLD_MYSQL_DIR = os.path.join(RUNTIME_DIR, 'mysql-9.4.0')
-NEW_MYSQL_URL = 'https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.7-winx64.zip'
+NEW_MYSQL_URL = 'https://cdn.xcnahida.cn/files/programs/mysql-8.4.7-winx64.zip'
 FILE_SHA256 = 'FD9BDBD4B5A878D31C8E4067078BD60665B1B3C4677FA1F099416D194B458AFF'
 NEW_MYSQL_NAME = 'mysql-8.4.7'
 
