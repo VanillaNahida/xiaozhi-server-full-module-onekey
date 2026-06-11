@@ -220,7 +220,7 @@ def get_pull_mode():
 def install_scripts_requirements(script_dir):
     """安装 scripts 目录下的依赖"""
     requirements_file = os.path.join(script_dir, "scripts", "requirements.txt")
-    mirror_url = "https://mirrors.aliyun.com/pypi/simple/"
+    mirror_url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
 
     print("\n开始安装一键包脚本依赖...")
     result = subprocess.run([
@@ -364,7 +364,7 @@ def update_modules():
     xiaozhi_server_requirements = os.path.join(script_dir, "src", "main", "xiaozhi-server", "requirements.txt")
     
     # 定义阿里云镜像源
-    mirror_url = "https://mirrors.aliyun.com/pypi/simple/"
+    mirror_url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
     
     print("\n开始更新依赖...")
     print("=" * 50)

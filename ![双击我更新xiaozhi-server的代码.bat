@@ -6,7 +6,7 @@ title 小智AI服务端更新脚本
 "%PYTHON_PATH%" ".\scripts\updater.py"
 
 echo 开始更新主服务依赖...
-pip install -r "./src/main/xiaozhi-server/requirements.txt" -i https://mirrors.aliyun.com/pypi/simple/
+pip install -r "./src/main/xiaozhi-server/requirements.txt" -i https://pypi.tuna.tsinghua.edu.cn/simple/
 @REM cls
 echo 全部依赖更新完毕！请按回车键退出...
 pause
