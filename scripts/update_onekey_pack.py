@@ -179,12 +179,13 @@ def run_git_command(git_path, args):
     return process.poll(), '\n'.join(output_lines)
     
 def pull_with_proxy(git_path):
-    """使用代理更新代码（传参Git所在位置）"""
+    """使用代理更新代码（传参Git所在位置），返回是否成功"""
     # 获取脚本所在目录的上级目录
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # 获取代理地址列表
     proxy_list = get_github_proxy_urls()
+    success = False
     for proxy in proxy_list:
         # 拼接代理地址
         new_url = f"{proxy.rstrip('/')}/{DEFAULT_REPO_URL}"
@@ -197,10 +198,12 @@ def pull_with_proxy(git_path):
             if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
 
             print("\n✅ 一键包更新成功！" if "Already up" not in output else "\n🎉 恭喜，你本地的代码已经是最新版本！")
+            success = True
             break
         else:
             print("\n❌ 更新失败，正在切换代理地址重试！")
             if os.path.exists(f'{script_dir}/scripts/assets/failed.wav'): play_audio_async(f'{script_dir}/scripts/assets/failed.wav')
+    return success
 
 def get_pull_mode():
     """选择更新模式"""
@@ -218,22 +221,12 @@ def install_scripts_requirements(script_dir):
     """安装 scripts 目录下的依赖"""
     requirements_file = os.path.join(script_dir, "scripts", "requirements.txt")
     mirror_url = "https://mirrors.aliyun.com/pypi/simple/"
-    trusted_host = "mirrors.aliyun.com"
 
-    print("\n开始配置并安装一键包脚本依赖...")
-    config_commands = [
-        [sys.executable, "-m", "pip", "config", "set", "global.index-url", mirror_url],
-        [sys.executable, "-m", "pip", "config", "set", "install.trusted-host", trusted_host],
-    ]
-
-    for command in config_commands:
-        result = subprocess.run(command, cwd=script_dir)
-        if result.returncode != 0:
-            print("❌ 配置 pip 镜像源失败")
-            return False
-
+    print("\n开始安装一键包脚本依赖...")
     result = subprocess.run([
-        sys.executable, "-m", "pip", "install", "-r", requirements_file
+        sys.executable, "-m", "pip", "install", "-r", requirements_file,
+        "-i", mirror_url,
+        "--trusted-host", "mirrors.aliyun.com"
     ], cwd=script_dir)
 
     if result.returncode == 0:
@@ -249,10 +242,13 @@ def auto_update(git_path, script_dir):
     print("\n开始自动更新一键包...")
     
     # 使用代理更新代码
-    pull_with_proxy(git_path)
+    git_success = pull_with_proxy(git_path)
     
-    # 更新 scripts 依赖
-    install_scripts_requirements(script_dir)
+    # 只有 git 更新成功后才安装依赖
+    if git_success:
+        install_scripts_requirements(script_dir)
+    else:
+        print("\n⚠️ Git 更新失败，跳过依赖安装")
     
     # 显示最终远程地址
     print("\n重置为默认远程地址")
@@ -305,7 +301,12 @@ def main():
         # 询问是否使用代理
         if use_proxy:
             # 使用代理更新代码
-            pull_with_proxy(git_path)
+            git_success = pull_with_proxy(git_path)
+            # 只有 git 更新成功后才安装依赖
+            if git_success:
+                install_scripts_requirements(script_dir)
+            else:
+                print("\n⚠️ Git 更新失败，跳过依赖安装")
         else:
             reset = input("是否重置为默认地址？(若需要进行强制更新操作，请输入N并按下回车) (y/n): ").lower() == 'y'
             if reset:
@@ -323,19 +324,22 @@ def main():
                     # 成功提示音
                     if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
                     print("\n✅ 一键包更新成功！" if "Already up" not in output else "\n🎉 恭喜，你的一键包已经是最新版本！")
-
+                    # 安装依赖
+                    install_scripts_requirements(script_dir)
                 else:
                     print("\n❌ 更新失败，请检查日志")
                     if os.path.exists(rf'{script_dir}/scripts/assets/failed.wav'): play_audio_async(rf'{script_dir}/scripts/assets/failed.wav')
             else:
                 print("\n警告⚠️： 强制更新将覆盖所有本地修改！")
-                if input("你确认要强制更新吗？请输入“确认强制更新”确认操作：") == "确认强制更新":
+                if input("你确认要强制更新吗？请输入'确认强制更新'确认操作：") == "确认强制更新":
                     print("\n正在强制同步...")
                     run_git_command(git_path, ["fetch", "origin"])
                     run_git_command(git_path, ["fetch", "--all"])
                     run_git_command(git_path, ["reset", "--hard", "origin/main"])
                     if os.path.exists(f'{script_dir}/scripts/assets/success.wav'): play_audio_async(f'{script_dir}/scripts/assets/success.wav')
                     print("\n🎉 强制更新成功！")
+                    # 安装依赖
+                    install_scripts_requirements(script_dir)
                 else:
                     print("\n⛔ 输入无效，已取消强制更新操作")
 

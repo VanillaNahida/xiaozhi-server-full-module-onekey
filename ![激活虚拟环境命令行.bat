@@ -12,6 +12,7 @@ set "MAVEN_PATH=%SCRIPT_DIR%runtime\maven-3.9.11\bin"
 set "MYSQL_PATH=%SCRIPT_DIR%runtime\mysql-8.4.7\bin"
 set "NODE_PATH=%SCRIPT_DIR%runtime\nodejs-v24.11.0"
 set "REDIS_PATH=%SCRIPT_DIR%runtime\Redis"
+set "GIT_PATH=%SCRIPT_DIR%runtime\git-2.48.1\bin"
 set "WORKSPACE=%SCRIPT_DIR%src\main\xiaozhi-server"
 
 :: 检查虚拟环境是否存在（必需）
@@ -39,6 +40,11 @@ if not exist "%REDIS_PATH%" (
     set "MISSING_PATHS=!MISSING_PATHS! Redis"
 )
 
+:: 检查Git路径
+if not exist "%GIT_PATH%" (
+    set "MISSING_PATHS=!MISSING_PATHS! Git"
+)
+
 :: 检查工作区路径
 if not exist "%WORKSPACE%" (
     set "MISSING_PATHS=!MISSING_PATHS! Workspace"
@@ -54,4 +60,4 @@ if not "%MISSING_PATHS%" == "" (
 )
 
 :: 使用最简单可靠的方式执行命令
-cmd /k "cd /d "%VENV_PATH%" && set PATH=%FFMPEG_PATH%;%JDK_PATH%;%MAVEN_PATH%;%MYSQL_PATH%;%NODE_PATH%;%REDIS_PATH%;%WORKSPACE%;%PATH% && call "%VENV_PATH%\Scripts\activate.bat" && echo 虚拟环境已成功激活！ && echo 环境变量已设置：FFmpeg, JDK, Maven, MySQL, Node.js, Redis, 工作区 && cd ..\..\"
+cmd /k "cd /d "%VENV_PATH%" && set PATH=%FFMPEG_PATH%;%JDK_PATH%;%MAVEN_PATH%;%MYSQL_PATH%;%NODE_PATH%;%REDIS_PATH%;%GIT_PATH%;%WORKSPACE%;%PATH% && call "%VENV_PATH%\Scripts\activate.bat" && echo 虚拟环境已成功激活！ && echo 环境变量已设置：FFmpeg, JDK, Maven, MySQL, Node.js, Redis, Git, 工作区 && cd ..\..\"
