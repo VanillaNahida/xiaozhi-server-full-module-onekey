@@ -6,10 +6,22 @@ import tempfile
 import sys
 import time
 import hashlib
+import json
 
 # 定义路径和URL
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNTIME_DIR = os.path.join(BASE_DIR, 'runtime')
+
+# 读取版本号
+_version_file = os.path.join(BASE_DIR, 'version.json')
+_version = '1.0.0'
+if os.path.exists(_version_file):
+    try:
+        with open(_version_file, 'r', encoding='utf-8') as f:
+            _data = json.load(f)
+            _version = _data.get('tag_name', '1.0.0').lstrip('v')
+    except Exception:
+        pass
 OLD_MYSQL_DIR = os.path.join(RUNTIME_DIR, 'mysql-9.4.0')
 NEW_MYSQL_URL = 'https://cdn.xcnahida.cn/files/programs/mysql-8.4.7-winx64.zip'
 FILE_SHA256 = 'FD9BDBD4B5A878D31C8E4067078BD60665B1B3C4677FA1F099416D194B458AFF'
@@ -52,87 +64,105 @@ def check_and_delete_old_mysql():
 
 def download_mysql_zip():
     """下载MySQL压缩包"""
-    print_info(f"开始下载MySQL压缩包: {NEW_MYSQL_URL}")
-    try:
-        response = requests.get(NEW_MYSQL_URL, stream=True)
-        response.raise_for_status()  # 检查下载是否成功
-        
-        # 获取文件大小
-        total_size = int(response.headers.get('content-length', 0))
-        downloaded_size = 0
-        start_time = time.time()
-        last_time = start_time
-        
-        with open(ZIP_FILE_PATH, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-                    downloaded_size += len(chunk)
-                    
-                    # 计算进度和速度
-                    current_time = time.time()
-                    elapsed_time = current_time - start_time
-                    chunk_time = current_time - last_time
-                    
-                    # 每0.5秒更新一次进度条
-                    if chunk_time > 0.5 or downloaded_size == total_size:
-                        last_time = current_time
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        print_info(f"开始下载MySQL压缩包（第{attempt}次尝试）: {NEW_MYSQL_URL}")
+        try:
+            headers = {
+                'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 XiaoZhiModules/{_version}',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Connection': 'keep-alive',
+            }
+            response = requests.get(NEW_MYSQL_URL, headers=headers, stream=True)
+            response.raise_for_status()  # 检查下载是否成功
+            
+            # 获取文件大小
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded_size = 0
+            start_time = time.time()
+            last_time = start_time
+            
+            with open(ZIP_FILE_PATH, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded_size += len(chunk)
                         
-                        # 计算进度百分比
-                        progress = downloaded_size / total_size if total_size > 0 else 0
-                        percentage = round(progress * 100, 2)
+                        # 计算进度和速度
+                        current_time = time.time()
+                        elapsed_time = current_time - start_time
+                        chunk_time = current_time - last_time
                         
-                        # 计算下载速度
-                        speed = downloaded_size / elapsed_time if elapsed_time > 0 else 0
-                        
-                        # 格式化速度显示
-                        if speed < 1024:
-                            speed_str = f"{speed:.2f} B/s"
-                        elif speed < 1024 * 1024:
-                            speed_str = f"{speed / 1024:.2f} KB/s"
-                        else:
-                            speed_str = f"{speed / (1024 * 1024):.2f} MB/s"
-                        
-                        # 格式化下载大小
-                        if downloaded_size < 1024:
-                            downloaded_str = f"{downloaded_size} B"
-                        elif downloaded_size < 1024 * 1024:
-                            downloaded_str = f"{downloaded_size / 1024:.2f} KB"
-                        else:
-                            downloaded_str = f"{downloaded_size / (1024 * 1024):.2f} MB"
-                        
-                        if total_size > 0:
-                            total_str = f"{total_size / (1024 * 1024):.2f} MB"
-                        else:
-                            total_str = "unknown"
-                        
-                        # 打印进度条
-                        bar_length = 50
-                        filled_length = int(bar_length * progress)
-                        bar = "#" * filled_length + "-" * (bar_length - filled_length)
-                        
-                        # 使用回车符覆盖当前行
-                        print(f"[INFO] [{'{:<50}'.format(bar)}] {percentage:.2f}% | {downloaded_str}/{total_str} | {speed_str}", end="\r")
-        
-        # 下载完成后换行
-        print()
-        print_info(f"下载完成，文件保存至: {ZIP_FILE_PATH}")
-        
-        # 下载完成后校验哈希值
-        print_info("校验下载的文件哈希值中...")
-        file_hash = calculate_sha256(ZIP_FILE_PATH)
-        if file_hash and file_hash == FILE_SHA256:
-            print_info("哈希值校验通过，文件完整")
-            return True
-        else:
-            print_error("下载的文件哈希值校验失败，文件可能损坏")
-            # 删除损坏的文件
-            if os.path.exists(ZIP_FILE_PATH):
-                os.remove(ZIP_FILE_PATH)
-            return False
-    except Exception as e:
-        print_error(f"下载MySQL压缩包失败: {e}")
-        return False
+                        # 每0.5秒更新一次进度条
+                        if chunk_time > 0.5 or downloaded_size == total_size:
+                            last_time = current_time
+                            
+                            # 计算进度百分比
+                            progress = downloaded_size / total_size if total_size > 0 else 0
+                            percentage = round(progress * 100, 2)
+                            
+                            # 计算下载速度
+                            speed = downloaded_size / elapsed_time if elapsed_time > 0 else 0
+                            
+                            # 格式化速度显示
+                            if speed < 1024:
+                                speed_str = f"{speed:.2f} B/s"
+                            elif speed < 1024 * 1024:
+                                speed_str = f"{speed / 1024:.2f} KB/s"
+                            else:
+                                speed_str = f"{speed / (1024 * 1024):.2f} MB/s"
+                            
+                            # 格式化下载大小
+                            if downloaded_size < 1024:
+                                downloaded_str = f"{downloaded_size} B"
+                            elif downloaded_size < 1024 * 1024:
+                                downloaded_str = f"{downloaded_size / 1024:.2f} KB"
+                            else:
+                                downloaded_str = f"{downloaded_size / (1024 * 1024):.2f} MB"
+                            
+                            if total_size > 0:
+                                total_str = f"{total_size / (1024 * 1024):.2f} MB"
+                            else:
+                                total_str = "unknown"
+                            
+                            # 打印进度条
+                            bar_length = 50
+                            filled_length = int(bar_length * progress)
+                            bar = "#" * filled_length + "-" * (bar_length - filled_length)
+                            
+                            # 使用回车符覆盖当前行
+                            print(f"[INFO] [{'{:<50}'.format(bar)}] {percentage:.2f}% | {downloaded_str}/{total_str} | {speed_str}", end="\r")
+            
+            # 下载完成后换行
+            print()
+            print_info(f"下载完成，文件保存至: {ZIP_FILE_PATH}")
+            
+            # 下载完成后校验哈希值
+            print_info("校验下载的文件哈希值中...")
+            file_hash = calculate_sha256(ZIP_FILE_PATH)
+            if file_hash and file_hash == FILE_SHA256:
+                print_info("哈希值校验通过，文件完整")
+                return True
+            else:
+                print_error("下载的文件哈希值校验失败，文件可能损坏")
+                # 删除损坏的文件
+                if os.path.exists(ZIP_FILE_PATH):
+                    os.remove(ZIP_FILE_PATH)
+                if attempt < max_retries:
+                    print_info("将在3秒后重试...")
+                    time.sleep(3)
+                continue
+        except Exception as e:
+            print_error(f"下载MySQL压缩包失败: {e}")
+            if attempt < max_retries:
+                print_info("将在3秒后重试...")
+                time.sleep(3)
+            continue
+    
+    print_error(f"重试{max_retries}次后仍失败，放弃下载")
+    time.sleep(5)
+    return False
 
 
 def calculate_sha256(file_path):
